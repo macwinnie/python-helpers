@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: macwinnie-pyhelpers
+Version: 1.0.1
+Summary: Helper classes for supporting Python development.
+Home-page: https://github.com/macwinnie/python-helpers
+Author: macwinnie
+Author-email: dev@macwinnie.me
+License: AGPL-3.0-or-later
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# Python Helpers
+
+    This toolset supports the daily coding.
+
+    The detailled documentation can be found at [GitHub](https://macwinnie.github.io/python-helpers).
+    

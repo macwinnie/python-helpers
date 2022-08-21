@@ -1,0 +1,16 @@
+LICENSE
+MANIFEST.in
+Pipfile
+README.md
+buildconfig.json
+pyproject.toml
+setup.py
+src/macwinnie_pyhelpers/Browser.py
+src/macwinnie_pyhelpers/CSV.py
+src/macwinnie_pyhelpers/PyHistory.py
+src/macwinnie_pyhelpers/__init__.py
+src/macwinnie_pyhelpers.egg-info/PKG-INFO
+src/macwinnie_pyhelpers.egg-info/SOURCES.txt
+src/macwinnie_pyhelpers.egg-info/dependency_links.txt
+src/macwinnie_pyhelpers.egg-info/requires.txt
+src/macwinnie_pyhelpers.egg-info/top_level.txt
