@@ -18,12 +18,7 @@ setup(
     author_email="dev@macwinnie.me",
     license="AGPL-3.0-or-later",
     description="Helper classes for supporting Python development.",
-    long_description="""# Python Helpers
-
-    This toolset supports the daily coding.
-
-    The detailled documentation can be found at [GitHub](https://macwinnie.github.io/python-helpers).
-    """,
+    long_description="## Python Helpers\n\nThis toolset supports the daily coding.\n\nThe detailled documentation can be found at [GitHub](https://macwinnie.github.io/python-helpers).",
     long_description_content_type="text/markdown",
     url="https://github.com/macwinnie/python-helpers",
     classifiers=[
