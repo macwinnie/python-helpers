@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: macwinnie-pyhelpers
-Version: 1.0.1
+Version: 1.0.2
 Summary: Helper classes for supporting Python development.
 Home-page: https://github.com/macwinnie/python-helpers
 Author: macwinnie
@@ -13,9 +13,8 @@ Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 License-File: LICENSE
 
-# Python Helpers
+## Python Helpers
 
-    This toolset supports the daily coding.
+This toolset supports the daily coding.
 
-    The detailled documentation can be found at [GitHub](https://macwinnie.github.io/python-helpers).
-    
+The detailled documentation can be found at [GitHub](https://macwinnie.github.io/python-helpers).
