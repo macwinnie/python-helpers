@@ -29,6 +29,16 @@ class Browser:
     appInfo = {}
 
     def __init__( self ):
+        """function to initiate the systems as needed"""
+        # fetch variables from ENV
+        from dotenv import load_dotenv
+        load_dotenv()
+        # ignore warnings, when SSL_IGNORE is set to true
+        import os
+        if os.getenv( "SSL_IGNORE", "False" ).lower() in [ "1", "true", "t", "y", "yes" ]:
+            import urllib3
+            urllib3.disable_warnings()
+        # gather App info and start browser
         self.gatherAppInfo()
         self.startBrowser()
 
