@@ -57,6 +57,16 @@ class Browser:
     appInfo = {}
 
     def __init__( self ):
+        &#34;&#34;&#34;function to initiate the systems as needed&#34;&#34;&#34;
+        # fetch variables from ENV
+        from dotenv import load_dotenv
+        load_dotenv()
+        # ignore warnings, when SSL_IGNORE is set to true
+        import os
+        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
+            import urllib3
+            urllib3.disable_warnings()
+        # gather App info and start browser
         self.gatherAppInfo()
         self.startBrowser()
 
@@ -347,7 +357,8 @@ class Browser:
 <span>class <span class="ident">Browser</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base browser for Selenium assisted applications</p></div>
+<div class="desc"><p>Base browser for Selenium assisted applications</p>
+<p>function to initiate the systems as needed</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -364,6 +375,16 @@ class Browser:
     appInfo = {}
 
     def __init__( self ):
+        &#34;&#34;&#34;function to initiate the systems as needed&#34;&#34;&#34;
+        # fetch variables from ENV
+        from dotenv import load_dotenv
+        load_dotenv()
+        # ignore warnings, when SSL_IGNORE is set to true
+        import os
+        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
+            import urllib3
+            urllib3.disable_warnings()
+        # gather App info and start browser
         self.gatherAppInfo()
         self.startBrowser()
 
