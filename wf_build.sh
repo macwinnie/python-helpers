@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # retrieve build config
 curPath="$( pwd )"
 configFile="${curPath}/buildconfig.json"
@@ -50,6 +52,12 @@ cd "${curPath}"
 
 # build python library
 python3 -m build
+
+# run tests
+FILES="$( pwd )/tests/*.py"
+for f in ${FILES}; do
+    python "${f}"
+done
 
 # upload to PyPI
 twine upload dist/*
