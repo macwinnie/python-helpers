@@ -50,14 +50,14 @@ done
 
 cd "${curPath}"
 
-# build python library
-python3 -m build
-
 # run tests
 FILES="$( pwd )/tests/*.py"
 for f in ${FILES}; do
     python "${f}"
 done
+
+# build python library
+python3 -m build
 
 # upload to PyPI
 twine upload dist/*
