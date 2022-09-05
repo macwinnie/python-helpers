@@ -31,6 +31,7 @@
 import pandas as pd
 import math
 
+
 class CSV:
     &#34;&#34;&#34;
     Helper class for CSV files, where named columns will be retrievable
@@ -41,83 +42,94 @@ class CSV:
 
     data = {}
     specs = {
-        &#39;delimiter&#39;: &#39;;&#39;,
-        &#39;linebreak&#39;: &#39;\n&#39;,
+        &#34;delimiter&#34;: &#34;;&#34;,
+        &#34;linebreak&#34;: &#34;\n&#34;,
     }
 
-    def __init__( self, data={}, jsonLike=False ):
+    def __init__(self, data={}, jsonLike=False):
         if jsonLike:
             self.data = {}
             for row in data:
                 try:
-                    existingRowCount = len( next( iter( self.data.values() ) ) )
+                    existingRowCount = len(next(iter(self.data.values())))
                 except:
                     existingRowCount = 0
                 keys = row.keys()
                 for k in keys:
                     if k not in self.data:
                         if existingRowCount &gt; 0:
-                            self.data[ k ] = [ None ] * existingRowCount
+                            self.data[k] = [None] * existingRowCount
                         else:
-                            self.data[ k ] = []
+                            self.data[k] = []
                 for k in self.data.keys():
                     if k in row:
-                        self.data[ k ].append( row[ k ] )
+                        self.data[k].append(row[k])
                     else:
-                        self.data[ k ].append( None )
+                        self.data[k].append(None)
         else:
             self.data = data
 
-    def setSpec ( self, spec, val ):
+    def setSpec(self, spec, val):
         &#34;&#34;&#34;function to set specifications for this CSV instance&#34;&#34;&#34;
-        self.specs[ spec ] = val
+        self.specs[spec] = val
 
-    def readFile ( self, filepath, delimiter=None ):
+    def readFile(self, filepath, delimiter=None):
         &#34;&#34;&#34;function to read a CSV file&#34;&#34;&#34;
         if delimiter == None:
-            delimiter = self.specs[ &#39;delimiter&#39; ]
-        data = pd.read_csv( filepath, delimiter=delimiter, low_memory=False )
+            delimiter = self.specs[&#34;delimiter&#34;]
+        data = pd.read_csv(filepath, delimiter=delimiter, low_memory=False)
         rows = {}
         for h in data.columns:
-            rows[ h ] = data.get( h ).to_list()
+            rows[h] = data.get(h).to_list()
         self.data = rows
 
-    def likeJSON ( self, keepEmpty=False, emptyValue=None ):
+    def likeJSON(self, keepEmpty=False, emptyValue=None):
         &#34;&#34;&#34;function to turn CSV to JSON like list of dictionaries&#34;&#34;&#34;
-        keys  = self.data.keys()
-        count = len( self.data[ keys[ 0 ] ] )
-        i     = 0
+        keys = self.data.keys()
+        count = len(self.data[keys[0]])
+        i = 0
         jsonO = []
         while i &lt; count:
             row = {}
             for key in keys:
-                value = self.data[ key ][ i ]
-                if value == &#39;&#39;:
+                value = self.data[key][i]
+                if value == &#34;&#34;:
                     if keepEmpty:
-                        row[ key ] = emptyValue
+                        row[key] = emptyValue
                 else:
-                    row[ key ] = value
-            jsonO.append( row )
+                    row[key] = value
+            jsonO.append(row)
         return jsonO
 
-    def writeFile ( self, filepath, delimiter=None, linebreak=None ):
+    def writeFile(self, filepath, delimiter=None, linebreak=None):
         &#34;&#34;&#34;function to write out data of current object to a CSV file&#34;&#34;&#34;
         if delimiter == None:
-            delimiter = self.specs[ &#39;delimiter&#39; ]
+            delimiter = self.specs[&#34;delimiter&#34;]
         if linebreak == None:
-            linebreak = self.specs[ &#39;linebreak&#39; ]
-        combined = [ [ k ] + v for k, v in self.data.items() ]
-        cols = pd.DataFrame( combined ).T.values.tolist()
+            linebreak = self.specs[&#34;linebreak&#34;]
+        combined = [[k] + v for k, v in self.data.items()]
+        cols = pd.DataFrame(combined).T.values.tolist()
         rows = []
         for r in cols:
             i = 0
             for c in r:
                 if c == None:
-                    r[i] = &#39;&#39;
+                    r[i] = &#34;&#34;
                 i += 1
-            rows.append( &#39;&#34;{values}&#34;&#39;.format( values=&#39;&#34;{delim}&#34;&#39;.format( delim=delimiter ).join( [ str( c ).replace(&#39;&#34;&#39;, &#39;&#34;&#34;&#34;&#39;) if isinstance( c, str ) or not math.isnan( c ) else &#39;&#39; for c in r ] ) ) )
-        with open( filepath, &#39;w&#39; ) as csv_file:
-            csv_file.write( linebreak.join( rows ) )</code></pre>
+            rows.append(
+                &#39;&#34;{values}&#34;&#39;.format(
+                    values=&#39;&#34;{delim}&#34;&#39;.format(delim=delimiter).join(
+                        [
+                            str(c).replace(&#39;&#34;&#39;, &#39;&#34;&#34;&#34;&#39;)
+                            if isinstance(c, str) or not math.isnan(c)
+                            else &#34;&#34;
+                            for c in r
+                        ]
+                    )
+                )
+            )
+        with open(filepath, &#34;w&#34;) as csv_file:
+            csv_file.write(linebreak.join(rows))</code></pre>
 </details>
 </section>
 <section>
@@ -151,83 +163,94 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 
     data = {}
     specs = {
-        &#39;delimiter&#39;: &#39;;&#39;,
-        &#39;linebreak&#39;: &#39;\n&#39;,
+        &#34;delimiter&#34;: &#34;;&#34;,
+        &#34;linebreak&#34;: &#34;\n&#34;,
     }
 
-    def __init__( self, data={}, jsonLike=False ):
+    def __init__(self, data={}, jsonLike=False):
         if jsonLike:
             self.data = {}
             for row in data:
                 try:
-                    existingRowCount = len( next( iter( self.data.values() ) ) )
+                    existingRowCount = len(next(iter(self.data.values())))
                 except:
                     existingRowCount = 0
                 keys = row.keys()
                 for k in keys:
                     if k not in self.data:
                         if existingRowCount &gt; 0:
-                            self.data[ k ] = [ None ] * existingRowCount
+                            self.data[k] = [None] * existingRowCount
                         else:
-                            self.data[ k ] = []
+                            self.data[k] = []
                 for k in self.data.keys():
                     if k in row:
-                        self.data[ k ].append( row[ k ] )
+                        self.data[k].append(row[k])
                     else:
-                        self.data[ k ].append( None )
+                        self.data[k].append(None)
         else:
             self.data = data
 
-    def setSpec ( self, spec, val ):
+    def setSpec(self, spec, val):
         &#34;&#34;&#34;function to set specifications for this CSV instance&#34;&#34;&#34;
-        self.specs[ spec ] = val
+        self.specs[spec] = val
 
-    def readFile ( self, filepath, delimiter=None ):
+    def readFile(self, filepath, delimiter=None):
         &#34;&#34;&#34;function to read a CSV file&#34;&#34;&#34;
         if delimiter == None:
-            delimiter = self.specs[ &#39;delimiter&#39; ]
-        data = pd.read_csv( filepath, delimiter=delimiter, low_memory=False )
+            delimiter = self.specs[&#34;delimiter&#34;]
+        data = pd.read_csv(filepath, delimiter=delimiter, low_memory=False)
         rows = {}
         for h in data.columns:
-            rows[ h ] = data.get( h ).to_list()
+            rows[h] = data.get(h).to_list()
         self.data = rows
 
-    def likeJSON ( self, keepEmpty=False, emptyValue=None ):
+    def likeJSON(self, keepEmpty=False, emptyValue=None):
         &#34;&#34;&#34;function to turn CSV to JSON like list of dictionaries&#34;&#34;&#34;
-        keys  = self.data.keys()
-        count = len( self.data[ keys[ 0 ] ] )
-        i     = 0
+        keys = self.data.keys()
+        count = len(self.data[keys[0]])
+        i = 0
         jsonO = []
         while i &lt; count:
             row = {}
             for key in keys:
-                value = self.data[ key ][ i ]
-                if value == &#39;&#39;:
+                value = self.data[key][i]
+                if value == &#34;&#34;:
                     if keepEmpty:
-                        row[ key ] = emptyValue
+                        row[key] = emptyValue
                 else:
-                    row[ key ] = value
-            jsonO.append( row )
+                    row[key] = value
+            jsonO.append(row)
         return jsonO
 
-    def writeFile ( self, filepath, delimiter=None, linebreak=None ):
+    def writeFile(self, filepath, delimiter=None, linebreak=None):
         &#34;&#34;&#34;function to write out data of current object to a CSV file&#34;&#34;&#34;
         if delimiter == None:
-            delimiter = self.specs[ &#39;delimiter&#39; ]
+            delimiter = self.specs[&#34;delimiter&#34;]
         if linebreak == None:
-            linebreak = self.specs[ &#39;linebreak&#39; ]
-        combined = [ [ k ] + v for k, v in self.data.items() ]
-        cols = pd.DataFrame( combined ).T.values.tolist()
+            linebreak = self.specs[&#34;linebreak&#34;]
+        combined = [[k] + v for k, v in self.data.items()]
+        cols = pd.DataFrame(combined).T.values.tolist()
         rows = []
         for r in cols:
             i = 0
             for c in r:
                 if c == None:
-                    r[i] = &#39;&#39;
+                    r[i] = &#34;&#34;
                 i += 1
-            rows.append( &#39;&#34;{values}&#34;&#39;.format( values=&#39;&#34;{delim}&#34;&#39;.format( delim=delimiter ).join( [ str( c ).replace(&#39;&#34;&#39;, &#39;&#34;&#34;&#34;&#39;) if isinstance( c, str ) or not math.isnan( c ) else &#39;&#39; for c in r ] ) ) )
-        with open( filepath, &#39;w&#39; ) as csv_file:
-            csv_file.write( linebreak.join( rows ) )</code></pre>
+            rows.append(
+                &#39;&#34;{values}&#34;&#39;.format(
+                    values=&#39;&#34;{delim}&#34;&#39;.format(delim=delimiter).join(
+                        [
+                            str(c).replace(&#39;&#34;&#39;, &#39;&#34;&#34;&#34;&#39;)
+                            if isinstance(c, str) or not math.isnan(c)
+                            else &#34;&#34;
+                            for c in r
+                        ]
+                    )
+                )
+            )
+        with open(filepath, &#34;w&#34;) as csv_file:
+            csv_file.write(linebreak.join(rows))</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -251,22 +274,22 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def likeJSON ( self, keepEmpty=False, emptyValue=None ):
+<pre><code class="python">def likeJSON(self, keepEmpty=False, emptyValue=None):
     &#34;&#34;&#34;function to turn CSV to JSON like list of dictionaries&#34;&#34;&#34;
-    keys  = self.data.keys()
-    count = len( self.data[ keys[ 0 ] ] )
-    i     = 0
+    keys = self.data.keys()
+    count = len(self.data[keys[0]])
+    i = 0
     jsonO = []
     while i &lt; count:
         row = {}
         for key in keys:
-            value = self.data[ key ][ i ]
-            if value == &#39;&#39;:
+            value = self.data[key][i]
+            if value == &#34;&#34;:
                 if keepEmpty:
-                    row[ key ] = emptyValue
+                    row[key] = emptyValue
             else:
-                row[ key ] = value
-        jsonO.append( row )
+                row[key] = value
+        jsonO.append(row)
     return jsonO</code></pre>
 </details>
 </dd>
@@ -279,14 +302,14 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def readFile ( self, filepath, delimiter=None ):
+<pre><code class="python">def readFile(self, filepath, delimiter=None):
     &#34;&#34;&#34;function to read a CSV file&#34;&#34;&#34;
     if delimiter == None:
-        delimiter = self.specs[ &#39;delimiter&#39; ]
-    data = pd.read_csv( filepath, delimiter=delimiter, low_memory=False )
+        delimiter = self.specs[&#34;delimiter&#34;]
+    data = pd.read_csv(filepath, delimiter=delimiter, low_memory=False)
     rows = {}
     for h in data.columns:
-        rows[ h ] = data.get( h ).to_list()
+        rows[h] = data.get(h).to_list()
     self.data = rows</code></pre>
 </details>
 </dd>
@@ -299,9 +322,9 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def setSpec ( self, spec, val ):
+<pre><code class="python">def setSpec(self, spec, val):
     &#34;&#34;&#34;function to set specifications for this CSV instance&#34;&#34;&#34;
-    self.specs[ spec ] = val</code></pre>
+    self.specs[spec] = val</code></pre>
 </details>
 </dd>
 <dt id="CSV.CSV.writeFile"><code class="name flex">
@@ -313,24 +336,35 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def writeFile ( self, filepath, delimiter=None, linebreak=None ):
+<pre><code class="python">def writeFile(self, filepath, delimiter=None, linebreak=None):
     &#34;&#34;&#34;function to write out data of current object to a CSV file&#34;&#34;&#34;
     if delimiter == None:
-        delimiter = self.specs[ &#39;delimiter&#39; ]
+        delimiter = self.specs[&#34;delimiter&#34;]
     if linebreak == None:
-        linebreak = self.specs[ &#39;linebreak&#39; ]
-    combined = [ [ k ] + v for k, v in self.data.items() ]
-    cols = pd.DataFrame( combined ).T.values.tolist()
+        linebreak = self.specs[&#34;linebreak&#34;]
+    combined = [[k] + v for k, v in self.data.items()]
+    cols = pd.DataFrame(combined).T.values.tolist()
     rows = []
     for r in cols:
         i = 0
         for c in r:
             if c == None:
-                r[i] = &#39;&#39;
+                r[i] = &#34;&#34;
             i += 1
-        rows.append( &#39;&#34;{values}&#34;&#39;.format( values=&#39;&#34;{delim}&#34;&#39;.format( delim=delimiter ).join( [ str( c ).replace(&#39;&#34;&#39;, &#39;&#34;&#34;&#34;&#39;) if isinstance( c, str ) or not math.isnan( c ) else &#39;&#39; for c in r ] ) ) )
-    with open( filepath, &#39;w&#39; ) as csv_file:
-        csv_file.write( linebreak.join( rows ) )</code></pre>
+        rows.append(
+            &#39;&#34;{values}&#34;&#39;.format(
+                values=&#39;&#34;{delim}&#34;&#39;.format(delim=delimiter).join(
+                    [
+                        str(c).replace(&#39;&#34;&#39;, &#39;&#34;&#34;&#34;&#39;)
+                        if isinstance(c, str) or not math.isnan(c)
+                        else &#34;&#34;
+                        for c in r
+                    ]
+                )
+            )
+        )
+    with open(filepath, &#34;w&#34;) as csv_file:
+        csv_file.write(linebreak.join(rows))</code></pre>
 </details>
 </dd>
 </dl>
