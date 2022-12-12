@@ -4,11 +4,11 @@ from setuptools import find_packages, setup
 import os, pipfile
 import json
 
-pf = pipfile.load( 'Pipfile' ).data
+pf = pipfile.load("Pipfile").data
 
-f = open( 'buildconfig.json' )
-j = json.load( f )
-build_version = j[ 'version' ]
+f = open("buildconfig.json")
+j = json.load(f)
+build_version = j["version"]
 f.close()
 
 setup(
@@ -27,12 +27,18 @@ setup(
         "Operating System :: OS Independent",
     ],
     package_dir={
-        "": "src"
+        "": "src",
     },
-    packages=find_packages( where="src" ),
-    python_requires=">={pyVersion}".format( pyVersion=pf['_meta']['requires']['python_version'] ),
-    install_requires=[ '{package}{version}'.format( package=p, version=v ) if v != '*' else p for p, v in pf['default'].items() ],
+    packages=find_packages(where="src"),
+    python_requires=">={pyVersion}".format(pyVersion=pf["_meta"]["requires"]["python_version"]),
+    install_requires=[
+        "{package}{version}".format(package=p, version=v) if v != "*" else p
+        for p, v in pf["default"].items()
+    ],
     extras_requires={
-        'develop': [ '{package}{version}'.format( package=p, version=v ) if v != '*' else p for p, v in pf['develop'].items() ],
-    }
+        "develop": [
+            "{package}{version}".format(package=p, version=v) if v != "*" else p
+            for p, v in pf["develop"].items()
+        ],
+    },
 )

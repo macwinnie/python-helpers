@@ -32,73 +32,80 @@ import requests, os, json, gc, getpass
 
 from bs4 import BeautifulSoup
 
-from selenium                                       import webdriver
-from selenium.common.exceptions                     import NoSuchElementException
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.common.by                   import By
+from selenium.webdriver.common.by import By
 
-class APIError ( Exception ):
+
+class APIError(Exception):
     &#34;&#34;&#34;An API Error Exception&#34;&#34;&#34;
-    def __init__( self, status, url ):
+
+    def __init__(self, status, url):
         self.status = status
-        self.url    = url
-    def __str__( self ):
-        return &#34;APIError: status={}\nURL:      {}&#34;.format( self.status, self.url )
+        self.url = url
+
+    def __str__(self):
+        return &#34;APIError: status={}\nURL:      {}&#34;.format(self.status, self.url)
+
 
 class Browser:
     &#34;&#34;&#34;Base browser for Selenium assisted applications&#34;&#34;&#34;
 
-    browser            = None
-    cookies            = {}
-    app                = {}
-    lastUrl            = &#34;&#34;
+    browser = None
+    cookies = {}
+    app = {}
+    lastUrl = &#34;&#34;
     sessionBaseHeaders = None
 
     appInfo = {}
 
-    def __init__( self ):
+    def __init__(self):
         &#34;&#34;&#34;function to initiate the systems as needed&#34;&#34;&#34;
         # fetch variables from ENV
         from dotenv import load_dotenv
+
         load_dotenv()
         # ignore warnings, when SSL_IGNORE is set to true
         import os
-        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
+
+        if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
             import urllib3
+
             urllib3.disable_warnings()
         # gather App info and start browser
         self.gatherAppInfo()
         self.startBrowser()
 
-    def setCookies( self, cookieDict, url=None, returnSession=False, curl=True ):
+    def setCookies(self, cookieDict, url=None, returnSession=False, curl=True):
         &#34;&#34;&#34;helper function to set cookies on browser&#34;&#34;&#34;
         if url == None:
-            url = self.app[ &#39;url&#39; ]
+            url = self.app[&#34;url&#34;]
         # parsedUrl = urllib.parse.urlparse(url)
         # domain, path = [ parsedUrl.netloc, parsedUrl.path ]
         # if path == &#39;&#39;:
         #     path = &#39;/&#39;
-        self.browser.get( url )
+        self.browser.get(url)
         for key, value in cookieDict.items():
-            if os.getenv( &#34;PRINT_DEBUG_INFO&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
-                print( &#39;Cookie is being set:&#39; )
-                print( { &#34;key&#34;: key, &#34;value&#34;: value } )
+            if os.getenv(&#34;PRINT_DEBUG_INFO&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
+                print(&#34;Cookie is being set:&#34;)
+                print({&#34;key&#34;: key, &#34;value&#34;: value})
                 print()
             # # does no more work since Python / Selenium Cookies can only be set for loaded URLs anymore ...
             # self.browser.add_cookie( { &#34;name&#34;: key, &#34;value&#34;: value, &#34;domain&#34;: domain, &#34;path&#34;: path } )
-            self.browser.add_cookie( { &#34;name&#34;: key, &#34;value&#34;: value } )
+            self.browser.add_cookie({&#34;name&#34;: key, &#34;value&#34;: value})
         self.browser.refresh()
         if returnSession:
-            return self.toSession( curl=curl )
+            return self.toSession(curl=curl)
 
-    def loadCookies( self, givenCookies=None, url=None ):
+    def loadCookies(self, givenCookies=None, url=None):
         &#34;&#34;&#34;function to load cookies from JSON string ENV variable `COOKIES` – or a given Python dictionary&#34;&#34;&#34;
         if givenCookies == None:
-            givenCookies = json.loads( os.getenv( &#34;COOKIES&#34;, &#34;{}&#34; ) )
-        if len( givenCookies ) &gt; 0:
-            self.setCookies( givenCookies, url )
+            givenCookies = json.loads(os.getenv(&#34;COOKIES&#34;, &#34;{}&#34;))
+        if len(givenCookies) &gt; 0:
+            self.setCookies(givenCookies, url)
 
-    def gatherAppInfo( self ):
+    def gatherAppInfo(self):
         &#34;&#34;&#34;
         function to set application information
 
@@ -115,207 +122,223 @@ class Browser:
         for key, config in self.appInfo.items():
             value = None
             # relevant for asking for a password
-            if &#39;password&#39; not in config:
-                config[ &#39;password&#39; ] = False
+            if &#34;password&#34; not in config:
+                config[&#34;password&#34;] = False
             # relevant for formatting urls
-            if &#39;url&#39; not in config:
-                config[ &#39;url&#39; ] = False
+            if &#34;url&#34; not in config:
+                config[&#34;url&#34;] = False
             # relevant for formatting urls
-            if &#39;urlLastChar&#39; not in config:
-                config[ &#39;urlLastChar&#39; ] = &#39;/&#39;
+            if &#34;urlLastChar&#34; not in config:
+                config[&#34;urlLastChar&#34;] = &#34;/&#34;
             # relevant if there is a default value for this
             # setting in the specific browser
-            if &#39;default&#39; not in config:
-                config[ &#39;default&#39; ] = None
+            if &#34;default&#34; not in config:
+                config[&#34;default&#34;] = None
             # check for config
-            if &#39;env&#39; in config:
-                value = os.getenv( config[ &#39;env&#39; ], config[ &#39;default&#39; ] )
+            if &#34;env&#34; in config:
+                value = os.getenv(config[&#34;env&#34;], config[&#34;default&#34;])
             # ensure value not None
             if value == None:
                 # ask for user input
-                if config[ &#39;password&#39; ]:
-                    value = getpass.getpass( &#39;{d}: &#39;.format( d=config[ &#39;description&#39; ] ) )
+                if config[&#34;password&#34;]:
+                    value = getpass.getpass(&#34;{d}: &#34;.format(d=config[&#34;description&#34;]))
                 else:
-                    value = input( &#39;{d}: &#39;.format( d=config[ &#39;description&#39; ] ) )
+                    value = input(&#34;{d}: &#34;.format(d=config[&#34;description&#34;]))
             # adjust url
-            if config[ &#39;url&#39; ] and len( config[ &#39;urlLastChar&#39; ] ) &gt; 0 and value[ -1 ] != config[ &#39;urlLastChar&#39; ]:
-                value += config[ &#39;urlLastChar&#39; ]
+            if (
+                config[&#34;url&#34;]
+                and len(config[&#34;urlLastChar&#34;]) &gt; 0
+                and value[-1] != config[&#34;urlLastChar&#34;]
+            ):
+                value += config[&#34;urlLastChar&#34;]
             # set value to app array
-            self.app[ key ] = value
+            self.app[key] = value
 
-    def startBrowser( self, custom_capabilities = {} ):
+    def startBrowser(self, custom_capabilities={}):
         &#34;&#34;&#34;Start Selenium browser&#34;&#34;&#34;
-        btype     = os.getenv( &#34;SELENIUM_BROWSER_TYPE&#34;, &#34;FIREFOX&#34; )
-        gridUrl   = os.getenv( &#34;SELENIUM_GRID&#34; )
+        btype = os.getenv(&#34;SELENIUM_BROWSER_TYPE&#34;, &#34;FIREFOX&#34;)
+        gridUrl = os.getenv(&#34;SELENIUM_GRID&#34;)
 
-        if btype.lower() in [ &#34;chrome&#34; ]:
-            capabilities      = DesiredCapabilities.CHROME.copy()
-        elif btype.lower() in [ &#34;opera&#34; ]:
-            capabilities      = DesiredCapabilities.OPERA.copy()
-        elif btype.lower() in [ &#34;safari&#34; ]:
-            capabilities      = DesiredCapabilities.SAFARI.copy()
+        if btype.lower() in [&#34;chrome&#34;]:
+            capabilities = DesiredCapabilities.CHROME.copy()
+        elif btype.lower() in [&#34;opera&#34;]:
+            capabilities = DesiredCapabilities.OPERA.copy()
+        elif btype.lower() in [&#34;safari&#34;]:
+            capabilities = DesiredCapabilities.SAFARI.copy()
         else:
-            capabilities      = DesiredCapabilities.FIREFOX.copy()
+            capabilities = DesiredCapabilities.FIREFOX.copy()
 
-        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
-            capabilities[ &#34;acceptInsecureCerts&#34; ] = True
+        if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
+            capabilities[&#34;acceptInsecureCerts&#34;] = True
 
         for key, value in custom_capabilities.items():
-            capabilities[ key ] = value
+            capabilities[key] = value
 
-        self.browser = webdriver.Remote (
-            command_executor     = gridUrl,
-            desired_capabilities = capabilities
-        )
-        self.browser.set_script_timeout( os.getenv( &#34;SELENIUM_TIMEOUT&#34;, 30000 ) )
+        self.browser = webdriver.Remote(command_executor=gridUrl, desired_capabilities=capabilities)
+        self.browser.set_script_timeout(os.getenv(&#34;SELENIUM_TIMEOUT&#34;, 30000))
 
-    def checkElementByXpath( self, xpath ):
+    def checkElementByXpath(self, xpath):
         &#34;&#34;&#34;helper function to check if element (XPATH) exists on page&#34;&#34;&#34;
         try:
-            self.browser.find_element( By.XPATH, xpath )
+            self.browser.find_element(By.XPATH, xpath)
         except NoSuchElementException:
             return False
         return True
 
-    def checkElementByID( self, ident ):
+    def checkElementByID(self, ident):
         &#34;&#34;&#34;helper function to check if element (ID) exists on page&#34;&#34;&#34;
         try:
-            self.browser.find_element( By.ID, ident )
+            self.browser.find_element(By.ID, ident)
         except NoSuchElementException:
             return False
         return True
 
-    def sessionPostRequest( self, url, data, transferCookies = False, headers = None, curl=True, session=None, urlOverride=False ):
+    def sessionPostRequest(
+        self,
+        url,
+        data,
+        transferCookies=False,
+        headers=None,
+        curl=True,
+        session=None,
+        urlOverride=False,
+    ):
         &#34;&#34;&#34;helper function to send POST request&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        headers = self.appendSessionHeaders( headers )
+            session = self.toSession(curl=curl)
+        headers = self.appendSessionHeaders(headers)
         if headers is not None:
-            request = session.post( url, data = data, headers = headers )
+            request = session.post(url, data=data, headers=headers)
         else:
-            request = session.post( url, data = data )
+            request = session.post(url, data=data)
         if transferCookies:
             # write Cookies from POST request to Selenium Browser
             new_cookies = session.cookies.get_dict()
             if urlOverride:
-                self.get( url, login=False )
-                self.setCookies( new_cookies, url=url )
+                self.get(url, login=False)
+                self.setCookies(new_cookies, url=url)
             else:
-                self.get( request.url, login=False )
-                self.setCookies( new_cookies, url=request.url )
+                self.get(request.url, login=False)
+                self.setCookies(new_cookies, url=request.url)
             self.refresh()
         return request
 
-    def sessionPutRequest( self, url, data, transferCookies = False, headers = None, curl=True, session=None ):
+    def sessionPutRequest(
+        self, url, data, transferCookies=False, headers=None, curl=True, session=None
+    ):
         &#34;&#34;&#34;helper function to send PUT request&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        headers = self.appendSessionHeaders( headers )
+            session = self.toSession(curl=curl)
+        headers = self.appendSessionHeaders(headers)
         if headers is not None:
-            request = session.put( url, data = data, headers = headers )
+            request = session.put(url, data=data, headers=headers)
         else:
-            request = session.put( url, data = data )
+            request = session.put(url, data=data)
         if transferCookies:
             # write Cookies from POST request to Selenium Browser
             new_cookies = session.cookies.get_dict()
-            self.get( request.url, login=False )
-            self.setCookies( new_cookies )
+            self.get(request.url, login=False)
+            self.setCookies(new_cookies)
             self.refresh()
         return request
 
-    def sessionGetRequest( self, url, transferCookies = False, headers = None, curl=True, session=None ):
+    def sessionGetRequest(self, url, transferCookies=False, headers=None, curl=True, session=None):
         &#34;&#34;&#34;helper function to send GET request&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        headers = self.appendSessionHeaders( headers )
+            session = self.toSession(curl=curl)
+        headers = self.appendSessionHeaders(headers)
         if headers is not None:
-            request = session.get( url, headers = headers )
+            request = session.get(url, headers=headers)
         else:
-            request = session.get( url )
+            request = session.get(url)
         if transferCookies:
             # write Cookies from POST request to Selenium Browser
             new_cookies = session.cookies.get_dict()
-            self.get( request.url, login=False )
-            self.setCookies( new_cookies )
+            self.get(request.url, login=False)
+            self.setCookies(new_cookies)
             self.refresh()
         return request
 
-    def apiGetInfo( self, apiUrl, returnResponse=False, session=None, curl=True ):
+    def apiGetInfo(self, apiUrl, returnResponse=False, session=None, curl=True):
         &#34;&#34;&#34;Function to gather information from API URL – if `returnResponse` is True, the whole request response is returned, otherwise only the decoded answer object&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        rsp = session.get( apiUrl )
+            session = self.toSession(curl=curl)
+        rsp = session.get(apiUrl)
         if returnResponse:
             return rsp
         else:
-            if ( rsp.status_code == 200 ):
-                return json.loads( rsp.text )
-            elif (rsp.status_code == 404 ):
+            if rsp.status_code == 200:
+                return json.loads(rsp.text)
+            elif rsp.status_code == 404:
                 return None
             else:
-                raise Exception( &#34;Error while API fetch:\n======================\n\nResponse Code: {rc}\n\n{body}&#34;.format( rc=rsp.status_code, body=rsp.text ) )
+                raise Exception(
+                    &#34;Error while API fetch:\n======================\n\nResponse Code: {rc}\n\n{body}&#34;.format(
+                        rc=rsp.status_code, body=rsp.text
+                    )
+                )
 
-    def appendSessionHeaders( self, headers=None ):
+    def appendSessionHeaders(self, headers=None):
         &#34;&#34;&#34;append session headers and retrieve them&#34;&#34;&#34;
         if headers is None:
             return self.sessionBaseHeaders
         else:
             for k, v in self.sessionBaseHeaders.items():
                 if k not in headers:
-                    headers[ k ] = v
+                    headers[k] = v
             return headers
 
-    def restoreCookies( self ):
+    def restoreCookies(self):
         &#34;&#34;&#34;Restore cookies on Browser&#34;&#34;&#34;
         for cookie in self.cookies:
             self.browser.add_cookie(cookie)
 
-    def renew( self ):
+    def renew(self):
         &#34;&#34;&#34;Renew browser by closing and reopening it with restored Cookies&#34;&#34;&#34;
         try:
             self.browser.quit()
         except:
             pass
         self.startBrowser()
-        self.browser.get( self.lastUrl )
+        self.browser.get(self.lastUrl)
         self.restoreCookies()
 
-    def refresh( self ):
+    def refresh(self):
         &#34;&#34;&#34;Reload page in Browser&#34;&#34;&#34;
         currentUrl = self.browser.current_url
-        self.get( currentUrl )
+        self.get(currentUrl)
         # self.browser.refresh() # bricks sessionPostRequest calls ...
 
-    def get( self, url, login = True ):
+    def get(self, url, login=True):
         &#34;&#34;&#34;Get url in Browser&#34;&#34;&#34;
-        self.browser.get( url )
+        self.browser.get(url)
         if login and not self.checkLogin():
             self.login()
-            self.browser.get( url )
+            self.browser.get(url)
         self.cookies = self.browser.get_cookies()
         self.lastUrl = url
         gc.collect()
 
-    def toSession( self, curl = False ):
+    def toSession(self, curl=False):
         &#34;&#34;&#34;Return python session&#34;&#34;&#34;
         sessionObj = requests.session()
         if curl:
-            agent = &#39;curl/7.54&#39;
+            agent = &#34;curl/7.54&#34;
         else:
-            agent = self.browser.execute_script( &#34;return navigator.userAgent&#34; )
-        sessionObj.headers = { &#39;User-Agent&#39;: agent }
-        if len( self.cookies ) &gt; 0:
+            agent = self.browser.execute_script(&#34;return navigator.userAgent&#34;)
+        sessionObj.headers = {&#34;User-Agent&#34;: agent}
+        if len(self.cookies) &gt; 0:
             for c in self.cookies:
-                sessionObj.cookies.set( c[ &#39;name&#39; ], c[ &#39;value&#39; ] )
-        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
+                sessionObj.cookies.set(c[&#34;name&#34;], c[&#34;value&#34;])
+        if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
             sessionObj.verify = False
         return sessionObj
 
-    def toSoup( self ):
+    def toSoup(self):
         &#34;&#34;&#34;get BeautifulSoup representation of currently loaded page&#34;&#34;&#34;
-        return BeautifulSoup( self.browser.page_source, &#39;html.parser&#39; )
+        return BeautifulSoup(self.browser.page_source, &#34;html.parser&#34;)
 
-    def __del__( self ):
+    def __del__(self):
         &#34;&#34;&#34;magic function to close the browser instance&#34;&#34;&#34;
         self.browser.quit()</code></pre>
 </details>
@@ -339,13 +362,15 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class APIError ( Exception ):
+<pre><code class="python">class APIError(Exception):
     &#34;&#34;&#34;An API Error Exception&#34;&#34;&#34;
-    def __init__( self, status, url ):
+
+    def __init__(self, status, url):
         self.status = status
-        self.url    = url
-    def __str__( self ):
-        return &#34;APIError: status={}\nURL:      {}&#34;.format( self.status, self.url )</code></pre>
+        self.url = url
+
+    def __str__(self):
+        return &#34;APIError: status={}\nURL:      {}&#34;.format(self.status, self.url)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -366,57 +391,60 @@ class Browser:
 <pre><code class="python">class Browser:
     &#34;&#34;&#34;Base browser for Selenium assisted applications&#34;&#34;&#34;
 
-    browser            = None
-    cookies            = {}
-    app                = {}
-    lastUrl            = &#34;&#34;
+    browser = None
+    cookies = {}
+    app = {}
+    lastUrl = &#34;&#34;
     sessionBaseHeaders = None
 
     appInfo = {}
 
-    def __init__( self ):
+    def __init__(self):
         &#34;&#34;&#34;function to initiate the systems as needed&#34;&#34;&#34;
         # fetch variables from ENV
         from dotenv import load_dotenv
+
         load_dotenv()
         # ignore warnings, when SSL_IGNORE is set to true
         import os
-        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
+
+        if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
             import urllib3
+
             urllib3.disable_warnings()
         # gather App info and start browser
         self.gatherAppInfo()
         self.startBrowser()
 
-    def setCookies( self, cookieDict, url=None, returnSession=False, curl=True ):
+    def setCookies(self, cookieDict, url=None, returnSession=False, curl=True):
         &#34;&#34;&#34;helper function to set cookies on browser&#34;&#34;&#34;
         if url == None:
-            url = self.app[ &#39;url&#39; ]
+            url = self.app[&#34;url&#34;]
         # parsedUrl = urllib.parse.urlparse(url)
         # domain, path = [ parsedUrl.netloc, parsedUrl.path ]
         # if path == &#39;&#39;:
         #     path = &#39;/&#39;
-        self.browser.get( url )
+        self.browser.get(url)
         for key, value in cookieDict.items():
-            if os.getenv( &#34;PRINT_DEBUG_INFO&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
-                print( &#39;Cookie is being set:&#39; )
-                print( { &#34;key&#34;: key, &#34;value&#34;: value } )
+            if os.getenv(&#34;PRINT_DEBUG_INFO&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
+                print(&#34;Cookie is being set:&#34;)
+                print({&#34;key&#34;: key, &#34;value&#34;: value})
                 print()
             # # does no more work since Python / Selenium Cookies can only be set for loaded URLs anymore ...
             # self.browser.add_cookie( { &#34;name&#34;: key, &#34;value&#34;: value, &#34;domain&#34;: domain, &#34;path&#34;: path } )
-            self.browser.add_cookie( { &#34;name&#34;: key, &#34;value&#34;: value } )
+            self.browser.add_cookie({&#34;name&#34;: key, &#34;value&#34;: value})
         self.browser.refresh()
         if returnSession:
-            return self.toSession( curl=curl )
+            return self.toSession(curl=curl)
 
-    def loadCookies( self, givenCookies=None, url=None ):
+    def loadCookies(self, givenCookies=None, url=None):
         &#34;&#34;&#34;function to load cookies from JSON string ENV variable `COOKIES` – or a given Python dictionary&#34;&#34;&#34;
         if givenCookies == None:
-            givenCookies = json.loads( os.getenv( &#34;COOKIES&#34;, &#34;{}&#34; ) )
-        if len( givenCookies ) &gt; 0:
-            self.setCookies( givenCookies, url )
+            givenCookies = json.loads(os.getenv(&#34;COOKIES&#34;, &#34;{}&#34;))
+        if len(givenCookies) &gt; 0:
+            self.setCookies(givenCookies, url)
 
-    def gatherAppInfo( self ):
+    def gatherAppInfo(self):
         &#34;&#34;&#34;
         function to set application information
 
@@ -433,207 +461,223 @@ class Browser:
         for key, config in self.appInfo.items():
             value = None
             # relevant for asking for a password
-            if &#39;password&#39; not in config:
-                config[ &#39;password&#39; ] = False
+            if &#34;password&#34; not in config:
+                config[&#34;password&#34;] = False
             # relevant for formatting urls
-            if &#39;url&#39; not in config:
-                config[ &#39;url&#39; ] = False
+            if &#34;url&#34; not in config:
+                config[&#34;url&#34;] = False
             # relevant for formatting urls
-            if &#39;urlLastChar&#39; not in config:
-                config[ &#39;urlLastChar&#39; ] = &#39;/&#39;
+            if &#34;urlLastChar&#34; not in config:
+                config[&#34;urlLastChar&#34;] = &#34;/&#34;
             # relevant if there is a default value for this
             # setting in the specific browser
-            if &#39;default&#39; not in config:
-                config[ &#39;default&#39; ] = None
+            if &#34;default&#34; not in config:
+                config[&#34;default&#34;] = None
             # check for config
-            if &#39;env&#39; in config:
-                value = os.getenv( config[ &#39;env&#39; ], config[ &#39;default&#39; ] )
+            if &#34;env&#34; in config:
+                value = os.getenv(config[&#34;env&#34;], config[&#34;default&#34;])
             # ensure value not None
             if value == None:
                 # ask for user input
-                if config[ &#39;password&#39; ]:
-                    value = getpass.getpass( &#39;{d}: &#39;.format( d=config[ &#39;description&#39; ] ) )
+                if config[&#34;password&#34;]:
+                    value = getpass.getpass(&#34;{d}: &#34;.format(d=config[&#34;description&#34;]))
                 else:
-                    value = input( &#39;{d}: &#39;.format( d=config[ &#39;description&#39; ] ) )
+                    value = input(&#34;{d}: &#34;.format(d=config[&#34;description&#34;]))
             # adjust url
-            if config[ &#39;url&#39; ] and len( config[ &#39;urlLastChar&#39; ] ) &gt; 0 and value[ -1 ] != config[ &#39;urlLastChar&#39; ]:
-                value += config[ &#39;urlLastChar&#39; ]
+            if (
+                config[&#34;url&#34;]
+                and len(config[&#34;urlLastChar&#34;]) &gt; 0
+                and value[-1] != config[&#34;urlLastChar&#34;]
+            ):
+                value += config[&#34;urlLastChar&#34;]
             # set value to app array
-            self.app[ key ] = value
+            self.app[key] = value
 
-    def startBrowser( self, custom_capabilities = {} ):
+    def startBrowser(self, custom_capabilities={}):
         &#34;&#34;&#34;Start Selenium browser&#34;&#34;&#34;
-        btype     = os.getenv( &#34;SELENIUM_BROWSER_TYPE&#34;, &#34;FIREFOX&#34; )
-        gridUrl   = os.getenv( &#34;SELENIUM_GRID&#34; )
+        btype = os.getenv(&#34;SELENIUM_BROWSER_TYPE&#34;, &#34;FIREFOX&#34;)
+        gridUrl = os.getenv(&#34;SELENIUM_GRID&#34;)
 
-        if btype.lower() in [ &#34;chrome&#34; ]:
-            capabilities      = DesiredCapabilities.CHROME.copy()
-        elif btype.lower() in [ &#34;opera&#34; ]:
-            capabilities      = DesiredCapabilities.OPERA.copy()
-        elif btype.lower() in [ &#34;safari&#34; ]:
-            capabilities      = DesiredCapabilities.SAFARI.copy()
+        if btype.lower() in [&#34;chrome&#34;]:
+            capabilities = DesiredCapabilities.CHROME.copy()
+        elif btype.lower() in [&#34;opera&#34;]:
+            capabilities = DesiredCapabilities.OPERA.copy()
+        elif btype.lower() in [&#34;safari&#34;]:
+            capabilities = DesiredCapabilities.SAFARI.copy()
         else:
-            capabilities      = DesiredCapabilities.FIREFOX.copy()
+            capabilities = DesiredCapabilities.FIREFOX.copy()
 
-        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
-            capabilities[ &#34;acceptInsecureCerts&#34; ] = True
+        if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
+            capabilities[&#34;acceptInsecureCerts&#34;] = True
 
         for key, value in custom_capabilities.items():
-            capabilities[ key ] = value
+            capabilities[key] = value
 
-        self.browser = webdriver.Remote (
-            command_executor     = gridUrl,
-            desired_capabilities = capabilities
-        )
-        self.browser.set_script_timeout( os.getenv( &#34;SELENIUM_TIMEOUT&#34;, 30000 ) )
+        self.browser = webdriver.Remote(command_executor=gridUrl, desired_capabilities=capabilities)
+        self.browser.set_script_timeout(os.getenv(&#34;SELENIUM_TIMEOUT&#34;, 30000))
 
-    def checkElementByXpath( self, xpath ):
+    def checkElementByXpath(self, xpath):
         &#34;&#34;&#34;helper function to check if element (XPATH) exists on page&#34;&#34;&#34;
         try:
-            self.browser.find_element( By.XPATH, xpath )
+            self.browser.find_element(By.XPATH, xpath)
         except NoSuchElementException:
             return False
         return True
 
-    def checkElementByID( self, ident ):
+    def checkElementByID(self, ident):
         &#34;&#34;&#34;helper function to check if element (ID) exists on page&#34;&#34;&#34;
         try:
-            self.browser.find_element( By.ID, ident )
+            self.browser.find_element(By.ID, ident)
         except NoSuchElementException:
             return False
         return True
 
-    def sessionPostRequest( self, url, data, transferCookies = False, headers = None, curl=True, session=None, urlOverride=False ):
+    def sessionPostRequest(
+        self,
+        url,
+        data,
+        transferCookies=False,
+        headers=None,
+        curl=True,
+        session=None,
+        urlOverride=False,
+    ):
         &#34;&#34;&#34;helper function to send POST request&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        headers = self.appendSessionHeaders( headers )
+            session = self.toSession(curl=curl)
+        headers = self.appendSessionHeaders(headers)
         if headers is not None:
-            request = session.post( url, data = data, headers = headers )
+            request = session.post(url, data=data, headers=headers)
         else:
-            request = session.post( url, data = data )
+            request = session.post(url, data=data)
         if transferCookies:
             # write Cookies from POST request to Selenium Browser
             new_cookies = session.cookies.get_dict()
             if urlOverride:
-                self.get( url, login=False )
-                self.setCookies( new_cookies, url=url )
+                self.get(url, login=False)
+                self.setCookies(new_cookies, url=url)
             else:
-                self.get( request.url, login=False )
-                self.setCookies( new_cookies, url=request.url )
+                self.get(request.url, login=False)
+                self.setCookies(new_cookies, url=request.url)
             self.refresh()
         return request
 
-    def sessionPutRequest( self, url, data, transferCookies = False, headers = None, curl=True, session=None ):
+    def sessionPutRequest(
+        self, url, data, transferCookies=False, headers=None, curl=True, session=None
+    ):
         &#34;&#34;&#34;helper function to send PUT request&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        headers = self.appendSessionHeaders( headers )
+            session = self.toSession(curl=curl)
+        headers = self.appendSessionHeaders(headers)
         if headers is not None:
-            request = session.put( url, data = data, headers = headers )
+            request = session.put(url, data=data, headers=headers)
         else:
-            request = session.put( url, data = data )
+            request = session.put(url, data=data)
         if transferCookies:
             # write Cookies from POST request to Selenium Browser
             new_cookies = session.cookies.get_dict()
-            self.get( request.url, login=False )
-            self.setCookies( new_cookies )
+            self.get(request.url, login=False)
+            self.setCookies(new_cookies)
             self.refresh()
         return request
 
-    def sessionGetRequest( self, url, transferCookies = False, headers = None, curl=True, session=None ):
+    def sessionGetRequest(self, url, transferCookies=False, headers=None, curl=True, session=None):
         &#34;&#34;&#34;helper function to send GET request&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        headers = self.appendSessionHeaders( headers )
+            session = self.toSession(curl=curl)
+        headers = self.appendSessionHeaders(headers)
         if headers is not None:
-            request = session.get( url, headers = headers )
+            request = session.get(url, headers=headers)
         else:
-            request = session.get( url )
+            request = session.get(url)
         if transferCookies:
             # write Cookies from POST request to Selenium Browser
             new_cookies = session.cookies.get_dict()
-            self.get( request.url, login=False )
-            self.setCookies( new_cookies )
+            self.get(request.url, login=False)
+            self.setCookies(new_cookies)
             self.refresh()
         return request
 
-    def apiGetInfo( self, apiUrl, returnResponse=False, session=None, curl=True ):
+    def apiGetInfo(self, apiUrl, returnResponse=False, session=None, curl=True):
         &#34;&#34;&#34;Function to gather information from API URL – if `returnResponse` is True, the whole request response is returned, otherwise only the decoded answer object&#34;&#34;&#34;
         if session == None:
-            session = self.toSession( curl=curl )
-        rsp = session.get( apiUrl )
+            session = self.toSession(curl=curl)
+        rsp = session.get(apiUrl)
         if returnResponse:
             return rsp
         else:
-            if ( rsp.status_code == 200 ):
-                return json.loads( rsp.text )
-            elif (rsp.status_code == 404 ):
+            if rsp.status_code == 200:
+                return json.loads(rsp.text)
+            elif rsp.status_code == 404:
                 return None
             else:
-                raise Exception( &#34;Error while API fetch:\n======================\n\nResponse Code: {rc}\n\n{body}&#34;.format( rc=rsp.status_code, body=rsp.text ) )
+                raise Exception(
+                    &#34;Error while API fetch:\n======================\n\nResponse Code: {rc}\n\n{body}&#34;.format(
+                        rc=rsp.status_code, body=rsp.text
+                    )
+                )
 
-    def appendSessionHeaders( self, headers=None ):
+    def appendSessionHeaders(self, headers=None):
         &#34;&#34;&#34;append session headers and retrieve them&#34;&#34;&#34;
         if headers is None:
             return self.sessionBaseHeaders
         else:
             for k, v in self.sessionBaseHeaders.items():
                 if k not in headers:
-                    headers[ k ] = v
+                    headers[k] = v
             return headers
 
-    def restoreCookies( self ):
+    def restoreCookies(self):
         &#34;&#34;&#34;Restore cookies on Browser&#34;&#34;&#34;
         for cookie in self.cookies:
             self.browser.add_cookie(cookie)
 
-    def renew( self ):
+    def renew(self):
         &#34;&#34;&#34;Renew browser by closing and reopening it with restored Cookies&#34;&#34;&#34;
         try:
             self.browser.quit()
         except:
             pass
         self.startBrowser()
-        self.browser.get( self.lastUrl )
+        self.browser.get(self.lastUrl)
         self.restoreCookies()
 
-    def refresh( self ):
+    def refresh(self):
         &#34;&#34;&#34;Reload page in Browser&#34;&#34;&#34;
         currentUrl = self.browser.current_url
-        self.get( currentUrl )
+        self.get(currentUrl)
         # self.browser.refresh() # bricks sessionPostRequest calls ...
 
-    def get( self, url, login = True ):
+    def get(self, url, login=True):
         &#34;&#34;&#34;Get url in Browser&#34;&#34;&#34;
-        self.browser.get( url )
+        self.browser.get(url)
         if login and not self.checkLogin():
             self.login()
-            self.browser.get( url )
+            self.browser.get(url)
         self.cookies = self.browser.get_cookies()
         self.lastUrl = url
         gc.collect()
 
-    def toSession( self, curl = False ):
+    def toSession(self, curl=False):
         &#34;&#34;&#34;Return python session&#34;&#34;&#34;
         sessionObj = requests.session()
         if curl:
-            agent = &#39;curl/7.54&#39;
+            agent = &#34;curl/7.54&#34;
         else:
-            agent = self.browser.execute_script( &#34;return navigator.userAgent&#34; )
-        sessionObj.headers = { &#39;User-Agent&#39;: agent }
-        if len( self.cookies ) &gt; 0:
+            agent = self.browser.execute_script(&#34;return navigator.userAgent&#34;)
+        sessionObj.headers = {&#34;User-Agent&#34;: agent}
+        if len(self.cookies) &gt; 0:
             for c in self.cookies:
-                sessionObj.cookies.set( c[ &#39;name&#39; ], c[ &#39;value&#39; ] )
-        if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
+                sessionObj.cookies.set(c[&#34;name&#34;], c[&#34;value&#34;])
+        if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
             sessionObj.verify = False
         return sessionObj
 
-    def toSoup( self ):
+    def toSoup(self):
         &#34;&#34;&#34;get BeautifulSoup representation of currently loaded page&#34;&#34;&#34;
-        return BeautifulSoup( self.browser.page_source, &#39;html.parser&#39; )
+        return BeautifulSoup(self.browser.page_source, &#34;html.parser&#34;)
 
-    def __del__( self ):
+    def __del__(self):
         &#34;&#34;&#34;magic function to close the browser instance&#34;&#34;&#34;
         self.browser.quit()</code></pre>
 </details>
@@ -675,20 +719,24 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def apiGetInfo( self, apiUrl, returnResponse=False, session=None, curl=True ):
+<pre><code class="python">def apiGetInfo(self, apiUrl, returnResponse=False, session=None, curl=True):
     &#34;&#34;&#34;Function to gather information from API URL – if `returnResponse` is True, the whole request response is returned, otherwise only the decoded answer object&#34;&#34;&#34;
     if session == None:
-        session = self.toSession( curl=curl )
-    rsp = session.get( apiUrl )
+        session = self.toSession(curl=curl)
+    rsp = session.get(apiUrl)
     if returnResponse:
         return rsp
     else:
-        if ( rsp.status_code == 200 ):
-            return json.loads( rsp.text )
-        elif (rsp.status_code == 404 ):
+        if rsp.status_code == 200:
+            return json.loads(rsp.text)
+        elif rsp.status_code == 404:
             return None
         else:
-            raise Exception( &#34;Error while API fetch:\n======================\n\nResponse Code: {rc}\n\n{body}&#34;.format( rc=rsp.status_code, body=rsp.text ) )</code></pre>
+            raise Exception(
+                &#34;Error while API fetch:\n======================\n\nResponse Code: {rc}\n\n{body}&#34;.format(
+                    rc=rsp.status_code, body=rsp.text
+                )
+            )</code></pre>
 </details>
 </dd>
 <dt id="Browser.Browser.appendSessionHeaders"><code class="name flex">
@@ -700,14 +748,14 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def appendSessionHeaders( self, headers=None ):
+<pre><code class="python">def appendSessionHeaders(self, headers=None):
     &#34;&#34;&#34;append session headers and retrieve them&#34;&#34;&#34;
     if headers is None:
         return self.sessionBaseHeaders
     else:
         for k, v in self.sessionBaseHeaders.items():
             if k not in headers:
-                headers[ k ] = v
+                headers[k] = v
         return headers</code></pre>
 </details>
 </dd>
@@ -720,10 +768,10 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def checkElementByID( self, ident ):
+<pre><code class="python">def checkElementByID(self, ident):
     &#34;&#34;&#34;helper function to check if element (ID) exists on page&#34;&#34;&#34;
     try:
-        self.browser.find_element( By.ID, ident )
+        self.browser.find_element(By.ID, ident)
     except NoSuchElementException:
         return False
     return True</code></pre>
@@ -738,10 +786,10 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def checkElementByXpath( self, xpath ):
+<pre><code class="python">def checkElementByXpath(self, xpath):
     &#34;&#34;&#34;helper function to check if element (XPATH) exists on page&#34;&#34;&#34;
     try:
-        self.browser.find_element( By.XPATH, xpath )
+        self.browser.find_element(By.XPATH, xpath)
     except NoSuchElementException:
         return False
     return True</code></pre>
@@ -764,7 +812,7 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def gatherAppInfo( self ):
+<pre><code class="python">def gatherAppInfo(self):
     &#34;&#34;&#34;
     function to set application information
 
@@ -781,33 +829,37 @@ class Browser:
     for key, config in self.appInfo.items():
         value = None
         # relevant for asking for a password
-        if &#39;password&#39; not in config:
-            config[ &#39;password&#39; ] = False
+        if &#34;password&#34; not in config:
+            config[&#34;password&#34;] = False
         # relevant for formatting urls
-        if &#39;url&#39; not in config:
-            config[ &#39;url&#39; ] = False
+        if &#34;url&#34; not in config:
+            config[&#34;url&#34;] = False
         # relevant for formatting urls
-        if &#39;urlLastChar&#39; not in config:
-            config[ &#39;urlLastChar&#39; ] = &#39;/&#39;
+        if &#34;urlLastChar&#34; not in config:
+            config[&#34;urlLastChar&#34;] = &#34;/&#34;
         # relevant if there is a default value for this
         # setting in the specific browser
-        if &#39;default&#39; not in config:
-            config[ &#39;default&#39; ] = None
+        if &#34;default&#34; not in config:
+            config[&#34;default&#34;] = None
         # check for config
-        if &#39;env&#39; in config:
-            value = os.getenv( config[ &#39;env&#39; ], config[ &#39;default&#39; ] )
+        if &#34;env&#34; in config:
+            value = os.getenv(config[&#34;env&#34;], config[&#34;default&#34;])
         # ensure value not None
         if value == None:
             # ask for user input
-            if config[ &#39;password&#39; ]:
-                value = getpass.getpass( &#39;{d}: &#39;.format( d=config[ &#39;description&#39; ] ) )
+            if config[&#34;password&#34;]:
+                value = getpass.getpass(&#34;{d}: &#34;.format(d=config[&#34;description&#34;]))
             else:
-                value = input( &#39;{d}: &#39;.format( d=config[ &#39;description&#39; ] ) )
+                value = input(&#34;{d}: &#34;.format(d=config[&#34;description&#34;]))
         # adjust url
-        if config[ &#39;url&#39; ] and len( config[ &#39;urlLastChar&#39; ] ) &gt; 0 and value[ -1 ] != config[ &#39;urlLastChar&#39; ]:
-            value += config[ &#39;urlLastChar&#39; ]
+        if (
+            config[&#34;url&#34;]
+            and len(config[&#34;urlLastChar&#34;]) &gt; 0
+            and value[-1] != config[&#34;urlLastChar&#34;]
+        ):
+            value += config[&#34;urlLastChar&#34;]
         # set value to app array
-        self.app[ key ] = value</code></pre>
+        self.app[key] = value</code></pre>
 </details>
 </dd>
 <dt id="Browser.Browser.get"><code class="name flex">
@@ -819,12 +871,12 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get( self, url, login = True ):
+<pre><code class="python">def get(self, url, login=True):
     &#34;&#34;&#34;Get url in Browser&#34;&#34;&#34;
-    self.browser.get( url )
+    self.browser.get(url)
     if login and not self.checkLogin():
         self.login()
-        self.browser.get( url )
+        self.browser.get(url)
     self.cookies = self.browser.get_cookies()
     self.lastUrl = url
     gc.collect()</code></pre>
@@ -839,12 +891,12 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def loadCookies( self, givenCookies=None, url=None ):
+<pre><code class="python">def loadCookies(self, givenCookies=None, url=None):
     &#34;&#34;&#34;function to load cookies from JSON string ENV variable `COOKIES` – or a given Python dictionary&#34;&#34;&#34;
     if givenCookies == None:
-        givenCookies = json.loads( os.getenv( &#34;COOKIES&#34;, &#34;{}&#34; ) )
-    if len( givenCookies ) &gt; 0:
-        self.setCookies( givenCookies, url )</code></pre>
+        givenCookies = json.loads(os.getenv(&#34;COOKIES&#34;, &#34;{}&#34;))
+    if len(givenCookies) &gt; 0:
+        self.setCookies(givenCookies, url)</code></pre>
 </details>
 </dd>
 <dt id="Browser.Browser.refresh"><code class="name flex">
@@ -856,10 +908,10 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def refresh( self ):
+<pre><code class="python">def refresh(self):
     &#34;&#34;&#34;Reload page in Browser&#34;&#34;&#34;
     currentUrl = self.browser.current_url
-    self.get( currentUrl )
+    self.get(currentUrl)
     # self.browser.refresh() # bricks sessionPostRequest calls ...</code></pre>
 </details>
 </dd>
@@ -872,14 +924,14 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def renew( self ):
+<pre><code class="python">def renew(self):
     &#34;&#34;&#34;Renew browser by closing and reopening it with restored Cookies&#34;&#34;&#34;
     try:
         self.browser.quit()
     except:
         pass
     self.startBrowser()
-    self.browser.get( self.lastUrl )
+    self.browser.get(self.lastUrl)
     self.restoreCookies()</code></pre>
 </details>
 </dd>
@@ -892,7 +944,7 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def restoreCookies( self ):
+<pre><code class="python">def restoreCookies(self):
     &#34;&#34;&#34;Restore cookies on Browser&#34;&#34;&#34;
     for cookie in self.cookies:
         self.browser.add_cookie(cookie)</code></pre>
@@ -907,20 +959,20 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sessionGetRequest( self, url, transferCookies = False, headers = None, curl=True, session=None ):
+<pre><code class="python">def sessionGetRequest(self, url, transferCookies=False, headers=None, curl=True, session=None):
     &#34;&#34;&#34;helper function to send GET request&#34;&#34;&#34;
     if session == None:
-        session = self.toSession( curl=curl )
-    headers = self.appendSessionHeaders( headers )
+        session = self.toSession(curl=curl)
+    headers = self.appendSessionHeaders(headers)
     if headers is not None:
-        request = session.get( url, headers = headers )
+        request = session.get(url, headers=headers)
     else:
-        request = session.get( url )
+        request = session.get(url)
     if transferCookies:
         # write Cookies from POST request to Selenium Browser
         new_cookies = session.cookies.get_dict()
-        self.get( request.url, login=False )
-        self.setCookies( new_cookies )
+        self.get(request.url, login=False)
+        self.setCookies(new_cookies)
         self.refresh()
     return request</code></pre>
 </details>
@@ -934,24 +986,33 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sessionPostRequest( self, url, data, transferCookies = False, headers = None, curl=True, session=None, urlOverride=False ):
+<pre><code class="python">def sessionPostRequest(
+    self,
+    url,
+    data,
+    transferCookies=False,
+    headers=None,
+    curl=True,
+    session=None,
+    urlOverride=False,
+):
     &#34;&#34;&#34;helper function to send POST request&#34;&#34;&#34;
     if session == None:
-        session = self.toSession( curl=curl )
-    headers = self.appendSessionHeaders( headers )
+        session = self.toSession(curl=curl)
+    headers = self.appendSessionHeaders(headers)
     if headers is not None:
-        request = session.post( url, data = data, headers = headers )
+        request = session.post(url, data=data, headers=headers)
     else:
-        request = session.post( url, data = data )
+        request = session.post(url, data=data)
     if transferCookies:
         # write Cookies from POST request to Selenium Browser
         new_cookies = session.cookies.get_dict()
         if urlOverride:
-            self.get( url, login=False )
-            self.setCookies( new_cookies, url=url )
+            self.get(url, login=False)
+            self.setCookies(new_cookies, url=url)
         else:
-            self.get( request.url, login=False )
-            self.setCookies( new_cookies, url=request.url )
+            self.get(request.url, login=False)
+            self.setCookies(new_cookies, url=request.url)
         self.refresh()
     return request</code></pre>
 </details>
@@ -965,20 +1026,22 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sessionPutRequest( self, url, data, transferCookies = False, headers = None, curl=True, session=None ):
+<pre><code class="python">def sessionPutRequest(
+    self, url, data, transferCookies=False, headers=None, curl=True, session=None
+):
     &#34;&#34;&#34;helper function to send PUT request&#34;&#34;&#34;
     if session == None:
-        session = self.toSession( curl=curl )
-    headers = self.appendSessionHeaders( headers )
+        session = self.toSession(curl=curl)
+    headers = self.appendSessionHeaders(headers)
     if headers is not None:
-        request = session.put( url, data = data, headers = headers )
+        request = session.put(url, data=data, headers=headers)
     else:
-        request = session.put( url, data = data )
+        request = session.put(url, data=data)
     if transferCookies:
         # write Cookies from POST request to Selenium Browser
         new_cookies = session.cookies.get_dict()
-        self.get( request.url, login=False )
-        self.setCookies( new_cookies )
+        self.get(request.url, login=False)
+        self.setCookies(new_cookies)
         self.refresh()
     return request</code></pre>
 </details>
@@ -992,26 +1055,26 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def setCookies( self, cookieDict, url=None, returnSession=False, curl=True ):
+<pre><code class="python">def setCookies(self, cookieDict, url=None, returnSession=False, curl=True):
     &#34;&#34;&#34;helper function to set cookies on browser&#34;&#34;&#34;
     if url == None:
-        url = self.app[ &#39;url&#39; ]
+        url = self.app[&#34;url&#34;]
     # parsedUrl = urllib.parse.urlparse(url)
     # domain, path = [ parsedUrl.netloc, parsedUrl.path ]
     # if path == &#39;&#39;:
     #     path = &#39;/&#39;
-    self.browser.get( url )
+    self.browser.get(url)
     for key, value in cookieDict.items():
-        if os.getenv( &#34;PRINT_DEBUG_INFO&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
-            print( &#39;Cookie is being set:&#39; )
-            print( { &#34;key&#34;: key, &#34;value&#34;: value } )
+        if os.getenv(&#34;PRINT_DEBUG_INFO&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
+            print(&#34;Cookie is being set:&#34;)
+            print({&#34;key&#34;: key, &#34;value&#34;: value})
             print()
         # # does no more work since Python / Selenium Cookies can only be set for loaded URLs anymore ...
         # self.browser.add_cookie( { &#34;name&#34;: key, &#34;value&#34;: value, &#34;domain&#34;: domain, &#34;path&#34;: path } )
-        self.browser.add_cookie( { &#34;name&#34;: key, &#34;value&#34;: value } )
+        self.browser.add_cookie({&#34;name&#34;: key, &#34;value&#34;: value})
     self.browser.refresh()
     if returnSession:
-        return self.toSession( curl=curl )</code></pre>
+        return self.toSession(curl=curl)</code></pre>
 </details>
 </dd>
 <dt id="Browser.Browser.startBrowser"><code class="name flex">
@@ -1023,31 +1086,28 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def startBrowser( self, custom_capabilities = {} ):
+<pre><code class="python">def startBrowser(self, custom_capabilities={}):
     &#34;&#34;&#34;Start Selenium browser&#34;&#34;&#34;
-    btype     = os.getenv( &#34;SELENIUM_BROWSER_TYPE&#34;, &#34;FIREFOX&#34; )
-    gridUrl   = os.getenv( &#34;SELENIUM_GRID&#34; )
+    btype = os.getenv(&#34;SELENIUM_BROWSER_TYPE&#34;, &#34;FIREFOX&#34;)
+    gridUrl = os.getenv(&#34;SELENIUM_GRID&#34;)
 
-    if btype.lower() in [ &#34;chrome&#34; ]:
-        capabilities      = DesiredCapabilities.CHROME.copy()
-    elif btype.lower() in [ &#34;opera&#34; ]:
-        capabilities      = DesiredCapabilities.OPERA.copy()
-    elif btype.lower() in [ &#34;safari&#34; ]:
-        capabilities      = DesiredCapabilities.SAFARI.copy()
+    if btype.lower() in [&#34;chrome&#34;]:
+        capabilities = DesiredCapabilities.CHROME.copy()
+    elif btype.lower() in [&#34;opera&#34;]:
+        capabilities = DesiredCapabilities.OPERA.copy()
+    elif btype.lower() in [&#34;safari&#34;]:
+        capabilities = DesiredCapabilities.SAFARI.copy()
     else:
-        capabilities      = DesiredCapabilities.FIREFOX.copy()
+        capabilities = DesiredCapabilities.FIREFOX.copy()
 
-    if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
-        capabilities[ &#34;acceptInsecureCerts&#34; ] = True
+    if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
+        capabilities[&#34;acceptInsecureCerts&#34;] = True
 
     for key, value in custom_capabilities.items():
-        capabilities[ key ] = value
+        capabilities[key] = value
 
-    self.browser = webdriver.Remote (
-        command_executor     = gridUrl,
-        desired_capabilities = capabilities
-    )
-    self.browser.set_script_timeout( os.getenv( &#34;SELENIUM_TIMEOUT&#34;, 30000 ) )</code></pre>
+    self.browser = webdriver.Remote(command_executor=gridUrl, desired_capabilities=capabilities)
+    self.browser.set_script_timeout(os.getenv(&#34;SELENIUM_TIMEOUT&#34;, 30000))</code></pre>
 </details>
 </dd>
 <dt id="Browser.Browser.toSession"><code class="name flex">
@@ -1059,18 +1119,18 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def toSession( self, curl = False ):
+<pre><code class="python">def toSession(self, curl=False):
     &#34;&#34;&#34;Return python session&#34;&#34;&#34;
     sessionObj = requests.session()
     if curl:
-        agent = &#39;curl/7.54&#39;
+        agent = &#34;curl/7.54&#34;
     else:
-        agent = self.browser.execute_script( &#34;return navigator.userAgent&#34; )
-    sessionObj.headers = { &#39;User-Agent&#39;: agent }
-    if len( self.cookies ) &gt; 0:
+        agent = self.browser.execute_script(&#34;return navigator.userAgent&#34;)
+    sessionObj.headers = {&#34;User-Agent&#34;: agent}
+    if len(self.cookies) &gt; 0:
         for c in self.cookies:
-            sessionObj.cookies.set( c[ &#39;name&#39; ], c[ &#39;value&#39; ] )
-    if os.getenv( &#34;SSL_IGNORE&#34;, &#34;False&#34; ).lower() in [ &#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34; ]:
+            sessionObj.cookies.set(c[&#34;name&#34;], c[&#34;value&#34;])
+    if os.getenv(&#34;SSL_IGNORE&#34;, &#34;False&#34;).lower() in [&#34;1&#34;, &#34;true&#34;, &#34;t&#34;, &#34;y&#34;, &#34;yes&#34;]:
         sessionObj.verify = False
     return sessionObj</code></pre>
 </details>
@@ -1084,9 +1144,9 @@ class Browser:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def toSoup( self ):
+<pre><code class="python">def toSoup(self):
     &#34;&#34;&#34;get BeautifulSoup representation of currently loaded page&#34;&#34;&#34;
-    return BeautifulSoup( self.browser.page_source, &#39;html.parser&#39; )</code></pre>
+    return BeautifulSoup(self.browser.page_source, &#34;html.parser&#34;)</code></pre>
 </details>
 </dd>
 </dl>

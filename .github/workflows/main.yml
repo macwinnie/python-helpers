@@ -31,6 +31,11 @@ jobs:
           ref: "master"
           path: "${{ env.WD_PATH }}"
 
+      - uses: psf/black@stable
+        with:
+          options: "--line-length 100 --verbose"
+          src: "${{ env.WD_PATH }}"
+
       - name: "Build documentation and package"
         run: |
           cd ./${{ env.WD_PATH }}

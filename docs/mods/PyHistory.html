@@ -30,6 +30,7 @@
 
 import readline
 
+
 class PyHistory:
     &#34;&#34;&#34;
     Helper while development: python cli history to summarize the executed commands on CLI
@@ -37,20 +38,20 @@ class PyHistory:
 
     showLineNumbers = False
 
-    def __init__( self, lineNumbers=False ):
+    def __init__(self, lineNumbers=False):
         &#34;&#34;&#34;initialize the History object&#34;&#34;&#34;
         self.showLineNumbers = lineNumbers
 
-    def print( self, showLineNumbers=None ):
+    def print(self, showLineNumbers=None):
         &#34;&#34;&#34;Print out history&#34;&#34;&#34;
         if showLineNumbers == None:
             showLineNumbers = self.showLineNumbers
         if showLineNumbers:
-            formatstring = &#39;{0:4d}  {1!s}&#39;
+            formatstring = &#34;{0:4d}  {1!s}&#34;
         else:
-            formatstring = &#39;{1!s}&#39;
-        for i in range( 1, readline.get_current_history_length() + 1 ):
-            print( formatstring.format( i, readline.get_history_item( i ) ) )</code></pre>
+            formatstring = &#34;{1!s}&#34;
+        for i in range(1, readline.get_current_history_length() + 1):
+            print(formatstring.format(i, readline.get_history_item(i)))</code></pre>
 </details>
 </section>
 <section>
@@ -80,20 +81,20 @@ class PyHistory:
 
     showLineNumbers = False
 
-    def __init__( self, lineNumbers=False ):
+    def __init__(self, lineNumbers=False):
         &#34;&#34;&#34;initialize the History object&#34;&#34;&#34;
         self.showLineNumbers = lineNumbers
 
-    def print( self, showLineNumbers=None ):
+    def print(self, showLineNumbers=None):
         &#34;&#34;&#34;Print out history&#34;&#34;&#34;
         if showLineNumbers == None:
             showLineNumbers = self.showLineNumbers
         if showLineNumbers:
-            formatstring = &#39;{0:4d}  {1!s}&#39;
+            formatstring = &#34;{0:4d}  {1!s}&#34;
         else:
-            formatstring = &#39;{1!s}&#39;
-        for i in range( 1, readline.get_current_history_length() + 1 ):
-            print( formatstring.format( i, readline.get_history_item( i ) ) )</code></pre>
+            formatstring = &#34;{1!s}&#34;
+        for i in range(1, readline.get_current_history_length() + 1):
+            print(formatstring.format(i, readline.get_history_item(i)))</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -113,16 +114,16 @@ class PyHistory:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def print( self, showLineNumbers=None ):
+<pre><code class="python">def print(self, showLineNumbers=None):
     &#34;&#34;&#34;Print out history&#34;&#34;&#34;
     if showLineNumbers == None:
         showLineNumbers = self.showLineNumbers
     if showLineNumbers:
-        formatstring = &#39;{0:4d}  {1!s}&#39;
+        formatstring = &#34;{0:4d}  {1!s}&#34;
     else:
-        formatstring = &#39;{1!s}&#39;
-    for i in range( 1, readline.get_current_history_length() + 1 ):
-        print( formatstring.format( i, readline.get_history_item( i ) ) )</code></pre>
+        formatstring = &#34;{1!s}&#34;
+    for i in range(1, readline.get_current_history_length() + 1):
+        print(formatstring.format(i, readline.get_history_item(i)))</code></pre>
 </details>
 </dd>
 </dl>
