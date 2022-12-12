@@ -14,7 +14,8 @@ pip install --user --upgrade \
     pipfile\
     twine
 
-export PATH="$( cd ~; pwd )/.local/bin:${PATH}"
+addPath="$( cd ~ || exit; pwd )/.local/bin"
+export PATH="${addPath}:${PATH}"
 
 pipenv install --dev
 

@@ -10,12 +10,12 @@ docPath="docs/mods"
 
 # retrieve publishing version
 # using semantic versioning – see https://semver.org
-publishVersion="$( cat "${configFile}" | jq -r ".version" )"
+publishVersion="$( jq -r ".version" < "${configFile}" )"
 if [ "${INC_VERSION:-false}" = "true" ]; then
     # increase patch part of version
-    publishVersion="$( echo ${publishVersion} | awk -F. -v OFS=. '{$NF += 1 ; print}' )"
+    publishVersion="$( echo "${publishVersion}" | awk -F. -v OFS=. '{$NF += 1 ; print}' )"
     # write new version into buildconfig.json
-    cat "${configFile}" | jq --arg newVer "${publishVersion}" '.version = $newVer' 1> "${tmpCFile}"
+    jq --arg newVer "${publishVersion}" '.version = $newVer' 1> "${tmpCFile}" < "${configFile}"
     mv "${tmpCFile}" "${configFile}"
 fi
 

@@ -1,0 +1,31 @@
+repos:
+
+- repo: local
+  hooks:
+  - id: update-pre-commit
+    # Keep pre-commits up to date:
+    # Will BREAK commit when versions did change, so commit has to be re-initiated.
+    name: update all hooks to latest for no more breaking GitHub workflow runs
+    language: system
+    entry: pre-commit
+    args:
+      - autoupdate
+    always_run: true
+    pass_filenames: false
+    fail_fast: true
+
+- repo: https://github.com/koalaman/shellcheck-precommit
+  rev: v0.8.0
+  hooks:
+  - id: shellcheck
+    # args: ["--severity=warning"]  # Optionally only show errors and warnings
+
+- repo: https://github.com/psf/black
+  rev: 22.12.0
+  hooks:
+  - id: black
+    language_version: python3.10
+    args:
+      - "--line-length=100"
+      # - "--check"
+      # - "--diff"

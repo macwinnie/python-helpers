@@ -107,19 +107,19 @@ class CSV:
 class ColumnHelper:
     """Helper class for columns"""
 
-    ord0 = ord( 'A' )
+    ord0 = ord("A")
 
-    def xlsCol2Int( self, colName ):
+    def xlsCol2Int(self, colName):
         """
         According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
         function is meant to translate the alphabetic “number” to an integer
         """
         val = 0
-        for ch in colName: # base-26 decoding "+1"
-            val = val * 26 + ord( ch ) - self.ord0 + 1
+        for ch in colName:  # base-26 decoding "+1"
+            val = val * 26 + ord(ch) - self.ord0 + 1
         return val - 1
 
-    def int2xlsCol( self, colInt ):
+    def int2xlsCol(self, colInt):
         """
         According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
         function is meant to translate an integer to its alphabetic “number”
@@ -127,11 +127,11 @@ class ColumnHelper:
         """
         chars = []
         while True:
-            if len( chars ) > 0:
+            if len(chars) > 0:
                 colInt = colInt - 1
             ch = colInt % 26
-            chars.append( chr( ch + self.ord0 ) )
+            chars.append(chr(ch + self.ord0))
             colInt = colInt // 26
             if not colInt:
                 break
-        return ''.join( reversed( chars ) )
+        return "".join(reversed(chars))
