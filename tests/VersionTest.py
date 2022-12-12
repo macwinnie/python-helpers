@@ -11,6 +11,9 @@ from macwinnie_pyhelpers.Version import Version
 
 
 class VersionTest(unittest.TestCase):
+    """
+    Tests for the `Version` collection.
+    """
 
     p1 = "v"
     p2 = ["v", "V.", "version "]

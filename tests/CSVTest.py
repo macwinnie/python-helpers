@@ -11,6 +11,10 @@ from macwinnie_pyhelpers.CSV import ColumnHelper
 
 
 class CSVTest(unittest.TestCase):
+    """
+    Tests for the collection `CSV`.
+    """
+
     def test_numberTransform(self):
         ch = ColumnHelper()
         chars = []
