@@ -21,7 +21,7 @@ jobs:
     runs-on: "ubuntu-latest"
 
     container:
-      image: "python:3-bullseye"
+      image: "python:latest"
 
     steps:
 
@@ -36,8 +36,19 @@ jobs:
           options: "--line-length 100 --verbose"
           src: "${{ env.WD_PATH }}"
 
+      - name: "Prepare environment"
+        run: |
+
+
+
       - name: "Build documentation and package"
         run: |
+          # add and enable pyenv
+          curl https://pyenv.run | bash
+          PYENV_ROOT="$HOME/.pyenv"
+          command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init -)"
+          # run script
           cd ./${{ env.WD_PATH }}
           bash wf_prep.sh
 

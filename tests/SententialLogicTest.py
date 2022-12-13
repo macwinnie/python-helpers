@@ -84,7 +84,7 @@ class SententialLogicTest(unittest.TestCase):
             self.assertEqual(tester.verify(x.upper()), False)
         # error throwing
         self.assertRaises(
-            Exception, lambda: tester.verify("This is a nonsense check for truth ...")
+            Exception, tester.verify("This is a nonsense check for truth ...")
         )
 
     def test_proposition_verification(self):
@@ -94,7 +94,7 @@ class SententialLogicTest(unittest.TestCase):
         brackets.
         """
         for [s, t, r] in self.tests:
-            i = SL.Sentence(s, verificator=self.mainVerifier)
+            i = SL.Sentence(s, verifier=self.mainVerifier)
             self.assertEqual(i.tsentence, t)
 
     def test_proposition_truth(self):
