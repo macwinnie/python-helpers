@@ -83,9 +83,7 @@ class SententialLogicTest(unittest.TestCase):
             self.assertEqual(tester.verify(x.capitalize()), False)
             self.assertEqual(tester.verify(x.upper()), False)
         # error throwing
-        self.assertRaises(
-            Exception, tester.verify("This is a nonsense check for truth ...")
-        )
+        self.assertRaises(Exception, tester.verify("This is a nonsense check for truth ..."))
 
     def test_proposition_verification(self):
         """

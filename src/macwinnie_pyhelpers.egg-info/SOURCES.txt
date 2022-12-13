@@ -8,6 +8,8 @@ setup.py
 src/macwinnie_pyhelpers/Browser.py
 src/macwinnie_pyhelpers/CSV.py
 src/macwinnie_pyhelpers/PyHistory.py
+src/macwinnie_pyhelpers/SententialLogic.py
+src/macwinnie_pyhelpers/Version.py
 src/macwinnie_pyhelpers/__init__.py
 src/macwinnie_pyhelpers.egg-info/PKG-INFO
 src/macwinnie_pyhelpers.egg-info/SOURCES.txt

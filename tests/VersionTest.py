@@ -78,8 +78,9 @@ class VersionTest(unittest.TestCase):
             ["1.2.9 >= 1.2.4 >= 1.2.5", False],
         ]
         for [s, r] in given:
-            i = SL.Sentence(s, interpretingExample=Version('1.2.3'))
+            i = SL.Sentence(s, interpretingExample=Version("1.2.3"))
             self.assertEqual(i.truth(), r)
+
 
 if __name__ == "__main__":
     unittest.main()

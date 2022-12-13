@@ -62,7 +62,7 @@ class Truth:
         for idx, match in enumerate(foundOperators):
             s = match.start()
             e = match.end()
-            splitting.append([s,e])
+            splitting.append([s, e])
         checks = []
         s3 = 0
         for i, s in enumerate(splitting):
@@ -70,35 +70,36 @@ class Truth:
             s2 = s[0]
             s3 = s[1]
             if i != len(splitting) - 1:
-                s4 = splitting[i+1][0]
+                s4 = splitting[i + 1][0]
             else:
                 s4 = len(proposition)
-            checks.append([
-                proposition[s1:s2].strip(),
-                proposition[s2:s3].strip(),
-                proposition[s3:s4].strip(),
-            ])
+            checks.append(
+                [
+                    proposition[s1:s2].strip(),
+                    proposition[s2:s3].strip(),
+                    proposition[s3:s4].strip(),
+                ]
+            )
         verum = True
         for c in checks:
             o0 = self.interpreter(c[0])
             o1 = self.interpreter(c[2])
-            if c[1] == '<=':
+            if c[1] == "<=":
                 verum = verum and o0 <= o1
-            elif c[1] == '<':
+            elif c[1] == "<":
                 verum = verum and o0 < o1
-            elif c[1] == '>=':
+            elif c[1] == ">=":
                 verum = verum and o0 >= o1
-            elif c[1] == '>':
+            elif c[1] == ">":
                 verum = verum and o0 > o1
-            elif c[1] == '!=':
+            elif c[1] == "!=":
                 verum = verum and o0 != o1
-            elif c[1] == '==':
+            elif c[1] == "==":
                 verum = verum and o0 == o1
             else:
-                raise Exception(
-                    '"{}" is not interpretable!'.format(proposition)
-                )
+                raise Exception('"{}" is not interpretable!'.format(proposition))
         return verum
+
 
 class Sentence:
     """
@@ -197,12 +198,8 @@ class Sentence:
                     if x != None:
                         literalA = x.group(1)
                         literalB = x.group(2)
-                        boolA = Sentence(
-                            literalA, verifier=self.verifier, pretested=True
-                        ).truth()
-                        boolB = Sentence(
-                            literalB, verifier=self.verifier, pretested=True
-                        ).truth()
+                        boolA = Sentence(literalA, verifier=self.verifier, pretested=True).truth()
+                        boolB = Sentence(literalB, verifier=self.verifier, pretested=True).truth()
                         self.atomized = self.atomized.replace(
                             x.group(0), self.getLiteral(boolA or boolB)
                         )
