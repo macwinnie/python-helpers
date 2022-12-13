@@ -8,8 +8,15 @@ class Truth:
     Basic truth check class.
     """
 
-    def __init__(self, interpreter=None):
-        pass
+    interpreter = None
+
+    def __init__(self, interpretingExample=None):
+        """
+        Given an example object, which should be able to support interpretion
+        of propopsitions, its type will be stored as interpreter. Defaults to
+        `None`, could be an `Version` object out of `macwinnie_pyhelpers.Version`
+        """
+        self.interpreter = type(interpretingExample)
 
     def verify(self, proposition):
         """
@@ -29,8 +36,69 @@ class Truth:
                 return True
             elif re.match(falseMatch, proposition.strip(), re.IGNORECASE):
                 return False
+            elif self.interpreter != None:
+                try:
+                    return self.interpret(proposition)
+                except:
+                    pass
         raise Exception('No interpretion found for given proposition "{}"!'.format(proposition))
 
+    def interpret(self, proposition):
+        """
+        Method for deep-diving proposition interpretation.
+        Will check for `P1 o P2` with `P1`, `P2` propositions and `o` an operator
+        out of:
+        * `<=` for “less or equal”
+        * `<` for “less”
+        * `>=` for “greater or equal”
+        * `>` for “greater”
+        * `!=` for “not equal”
+        * `==` for “equal”
+        """
+        rx = r"((((<|>)=?)|(!|=)=))"
+        cRx = re.compile(rx)
+        splitting = []
+        foundOperators = cRx.finditer(proposition)
+        for idx, match in enumerate(foundOperators):
+            s = match.start()
+            e = match.end()
+            splitting.append([s,e])
+        checks = []
+        s3 = 0
+        for i, s in enumerate(splitting):
+            s1 = s3
+            s2 = s[0]
+            s3 = s[1]
+            if i != len(splitting) - 1:
+                s4 = splitting[i+1][0]
+            else:
+                s4 = len(proposition)
+            checks.append([
+                proposition[s1:s2].strip(),
+                proposition[s2:s3].strip(),
+                proposition[s3:s4].strip(),
+            ])
+        verum = True
+        for c in checks:
+            o0 = self.interpreter(c[0])
+            o1 = self.interpreter(c[2])
+            if c[1] == '<=':
+                verum = verum and o0 <= o1
+            elif c[1] == '<':
+                verum = verum and o0 < o1
+            elif c[1] == '>=':
+                verum = verum and o0 >= o1
+            elif c[1] == '>':
+                verum = verum and o0 > o1
+            elif c[1] == '!=':
+                verum = verum and o0 != o1
+            elif c[1] == '==':
+                verum = verum and o0 == o1
+            else:
+                raise Exception(
+                    '"{}" is not interpretable!'.format(proposition)
+                )
+        return verum
 
 class Sentence:
     """
@@ -50,7 +118,7 @@ class Sentence:
     verifier = None
     atomized = None
 
-    def __init__(self, sentence, interpreter=None, verifier=None, pretested=False):
+    def __init__(self, sentence, interpretingExample=None, verifier=None, pretested=False):
         """
         Given a `sentence`, this classes objects will be used to verify a logical
         sentence.
@@ -69,10 +137,10 @@ class Sentence:
         self.sentence = sentence
         if not pretested:
             if verifier == None:
-                if interpreter == None:
+                if type(interpretingExample) == type(None):
                     self.verifier = Truth()
                 else:
-                    self.verifier = Truth(interpreter)
+                    self.verifier = Truth(interpretingExample)
             else:
                 self.verifier = verifier
             self.verifyAllPropositions()
