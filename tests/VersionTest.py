@@ -26,9 +26,9 @@ class VersionTest(unittest.TestCase):
     def test_definitions(self):
         """Test if string representation of a version stays exact"""
         vObj = Version(self.v1)
-        self.assertEqual(str(vObj), self.v1)
+        self.assertEqual(vObj, self.v1)
         vObj = Version(self.p1 + self.v2, self.p1)
-        self.assertEqual(str(vObj), self.v2)
+        self.assertEqual(vObj, self.v2)
 
     def test_increase(self):
         """Test increasing versions"""
@@ -55,7 +55,7 @@ class VersionTest(unittest.TestCase):
         for p in self.p2:
             vs = p + self.v1
             vo = Version(vs, self.p2)
-            self.assertEqual(str(vo), self.v1)
+            self.assertEqual(vo, self.v1)
 
 
 if __name__ == "__main__":

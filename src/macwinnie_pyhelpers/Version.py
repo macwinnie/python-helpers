@@ -12,15 +12,18 @@ class Version:
     major = 0
     minor = 0
     patch = 0
+    prefix = None
+    given = None
 
-    def __init__(self, versionString, prefix=[]):
+    def __init__(self, versionString, prefix=[], removePrefix=False):
         """
         Versions could be prefixed:
 
-        * e.g when `v1.2.3` is (or can be) used, the `prefix` parameter has to be set to `v`.
-        * if one has multiple options (case sensitive!), `prefix` has to be a list of all options
-        * default is an empty list
+        * E.g when `v1.2.3` is (or can be) used, the `prefix` parameter has to be set to `v`.
+        * If one has multiple options (case sensitive!), `prefix` has to be a list of all options
+        * Default is an empty list
         """
+        self.given = versionString
         if type(prefix) == str:
             self.prefixes = [prefix]
         else:
@@ -30,13 +33,20 @@ class Version:
             prs.reverse()
             for p in prs:
                 if versionString.startswith(p):
+                    if not removePrefix:
+                        self.prefix = p
                     versionString = versionString[len(p) :]
+                    break
         vs = versionString.split(".")
         self.major, self.minor, self.patch = map(int, vs)
 
     def __str__(self):
         """convert current instance to version string"""
-        return ".".join(list(map(str, [self.major, self.minor, self.patch])))
+        vString = ".".join(list(map(str, [self.major, self.minor, self.patch])))
+        if self.prefix != None:
+            return self.prefix + vString
+        else:
+            return vString
 
     def cmpPrepare(self, other):
         """Function to prepare comparison version"""
