@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-apt update
-apt install -y \
+apt-get update
+apt-get -y install\
     jq xmlstarlet \
-    python3-dev python3-wheel \
+    python3-dev python3-wheel python3-distutils \
     tree
 
 rm -rf "$( pwd )/Pipfile.lock"

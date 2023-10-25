@@ -2,6 +2,7 @@
 
 import pandas as pd
 import math
+import io
 
 
 class CSV:
@@ -46,10 +47,21 @@ class CSV:
         self.specs[spec] = val
 
     def readFile(self, filepath, delimiter=None):
-        """function to read a CSV file"""
+        """read a CSV file"""
+        self.readCSV(filepath, delimiter=delimiter, file=True)
+
+    def readCSV(self, path_or_csvstring, delimiter=None, encoding="utf-8", file=False):
+        """load CSV"""
         if delimiter == None:
             delimiter = self.specs["delimiter"]
-        data = pd.read_csv(filepath, delimiter=delimiter, low_memory=False)
+        if file:
+            data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
+        else:
+            data = pd.read_csv(
+                io.StringIO(path_or_csvstring.decode(encoding)),
+                delimiter=delimiter,
+                low_memory=False,
+            )
         rows = {}
         for h in data.columns:
             rows[h] = data.get(h).to_list()

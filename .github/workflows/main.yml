@@ -36,11 +36,6 @@ jobs:
           options: "--line-length 100 --verbose"
           src: "${{ env.WD_PATH }}"
 
-      - name: "Prepare environment"
-        run: |
-
-
-
       - name: "Build documentation and package"
         run: |
           # add and enable pyenv
