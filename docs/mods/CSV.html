@@ -30,6 +30,7 @@
 
 import pandas as pd
 import math
+import io
 
 
 class CSV:
@@ -74,10 +75,21 @@ class CSV:
         self.specs[spec] = val
 
     def readFile(self, filepath, delimiter=None):
-        &#34;&#34;&#34;function to read a CSV file&#34;&#34;&#34;
+        &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
+        self.readCSV(filepath, delimiter=delimiter, file=True)
+
+    def readCSV(self, path_or_csvstring, delimiter=None, encoding=&#34;utf-8&#34;, file=False):
+        &#34;&#34;&#34;load CSV&#34;&#34;&#34;
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
-        data = pd.read_csv(filepath, delimiter=delimiter, low_memory=False)
+        if file:
+            data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
+        else:
+            data = pd.read_csv(
+                io.StringIO(path_or_csvstring.decode(encoding)),
+                delimiter=delimiter,
+                low_memory=False,
+            )
         rows = {}
         for h in data.columns:
             rows[h] = data.get(h).to_list()
@@ -228,10 +240,21 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
         self.specs[spec] = val
 
     def readFile(self, filepath, delimiter=None):
-        &#34;&#34;&#34;function to read a CSV file&#34;&#34;&#34;
+        &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
+        self.readCSV(filepath, delimiter=delimiter, file=True)
+
+    def readCSV(self, path_or_csvstring, delimiter=None, encoding=&#34;utf-8&#34;, file=False):
+        &#34;&#34;&#34;load CSV&#34;&#34;&#34;
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
-        data = pd.read_csv(filepath, delimiter=delimiter, low_memory=False)
+        if file:
+            data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
+        else:
+            data = pd.read_csv(
+                io.StringIO(path_or_csvstring.decode(encoding)),
+                delimiter=delimiter,
+                low_memory=False,
+            )
         rows = {}
         for h in data.columns:
             rows[h] = data.get(h).to_list()
@@ -326,24 +349,45 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
     return jsonO</code></pre>
 </details>
 </dd>
+<dt id="CSV.CSV.readCSV"><code class="name flex">
+<span>def <span class="ident">readCSV</span></span>(<span>self, path_or_csvstring, delimiter=None, encoding='utf-8', file=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load CSV</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def readCSV(self, path_or_csvstring, delimiter=None, encoding=&#34;utf-8&#34;, file=False):
+    &#34;&#34;&#34;load CSV&#34;&#34;&#34;
+    if delimiter == None:
+        delimiter = self.specs[&#34;delimiter&#34;]
+    if file:
+        data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
+    else:
+        data = pd.read_csv(
+            io.StringIO(path_or_csvstring.decode(encoding)),
+            delimiter=delimiter,
+            low_memory=False,
+        )
+    rows = {}
+    for h in data.columns:
+        rows[h] = data.get(h).to_list()
+    self.data = rows</code></pre>
+</details>
+</dd>
 <dt id="CSV.CSV.readFile"><code class="name flex">
 <span>def <span class="ident">readFile</span></span>(<span>self, filepath, delimiter=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>function to read a CSV file</p></div>
+<div class="desc"><p>read a CSV file</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def readFile(self, filepath, delimiter=None):
-    &#34;&#34;&#34;function to read a CSV file&#34;&#34;&#34;
-    if delimiter == None:
-        delimiter = self.specs[&#34;delimiter&#34;]
-    data = pd.read_csv(filepath, delimiter=delimiter, low_memory=False)
-    rows = {}
-    for h in data.columns:
-        rows[h] = data.get(h).to_list()
-    self.data = rows</code></pre>
+    &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
+    self.readCSV(filepath, delimiter=delimiter, file=True)</code></pre>
 </details>
 </dd>
 <dt id="CSV.CSV.setSpec"><code class="name flex">
@@ -520,6 +564,7 @@ function is meant to translate the alphabetic “number” to an integer</p></di
 <ul class="two-column">
 <li><code><a title="CSV.CSV.data" href="#CSV.CSV.data">data</a></code></li>
 <li><code><a title="CSV.CSV.likeJSON" href="#CSV.CSV.likeJSON">likeJSON</a></code></li>
+<li><code><a title="CSV.CSV.readCSV" href="#CSV.CSV.readCSV">readCSV</a></code></li>
 <li><code><a title="CSV.CSV.readFile" href="#CSV.CSV.readFile">readFile</a></code></li>
 <li><code><a title="CSV.CSV.setSpec" href="#CSV.CSV.setSpec">setSpec</a></code></li>
 <li><code><a title="CSV.CSV.specs" href="#CSV.CSV.specs">specs</a></code></li>
