@@ -78,7 +78,7 @@ class CSV:
         &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
         self.readCSV(filepath, delimiter=delimiter, file=True)
 
-    def readCSV(self, path_or_csvstring, delimiter=None, encoding=&#34;utf-8&#34;, file=False):
+    def readCSV(self, path_or_csvstring, delimiter=None, file=False):
         &#34;&#34;&#34;load CSV&#34;&#34;&#34;
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
@@ -86,7 +86,7 @@ class CSV:
             data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
         else:
             data = pd.read_csv(
-                io.StringIO(path_or_csvstring.decode(encoding)),
+                io.StringIO(path_or_csvstring),
                 delimiter=delimiter,
                 low_memory=False,
             )
@@ -243,7 +243,7 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
         &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
         self.readCSV(filepath, delimiter=delimiter, file=True)
 
-    def readCSV(self, path_or_csvstring, delimiter=None, encoding=&#34;utf-8&#34;, file=False):
+    def readCSV(self, path_or_csvstring, delimiter=None, file=False):
         &#34;&#34;&#34;load CSV&#34;&#34;&#34;
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
@@ -251,7 +251,7 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
             data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
         else:
             data = pd.read_csv(
-                io.StringIO(path_or_csvstring.decode(encoding)),
+                io.StringIO(path_or_csvstring),
                 delimiter=delimiter,
                 low_memory=False,
             )
@@ -350,7 +350,7 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 </details>
 </dd>
 <dt id="CSV.CSV.readCSV"><code class="name flex">
-<span>def <span class="ident">readCSV</span></span>(<span>self, path_or_csvstring, delimiter=None, encoding='utf-8', file=False)</span>
+<span>def <span class="ident">readCSV</span></span>(<span>self, path_or_csvstring, delimiter=None, file=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load CSV</p></div>
@@ -358,7 +358,7 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def readCSV(self, path_or_csvstring, delimiter=None, encoding=&#34;utf-8&#34;, file=False):
+<pre><code class="python">def readCSV(self, path_or_csvstring, delimiter=None, file=False):
     &#34;&#34;&#34;load CSV&#34;&#34;&#34;
     if delimiter == None:
         delimiter = self.specs[&#34;delimiter&#34;]
@@ -366,7 +366,7 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
         data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
     else:
         data = pd.read_csv(
-            io.StringIO(path_or_csvstring.decode(encoding)),
+            io.StringIO(path_or_csvstring),
             delimiter=delimiter,
             low_memory=False,
         )
