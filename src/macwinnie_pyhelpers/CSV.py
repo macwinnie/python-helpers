@@ -50,7 +50,7 @@ class CSV:
         """read a CSV file"""
         self.readCSV(filepath, delimiter=delimiter, file=True)
 
-    def readCSV(self, path_or_csvstring, delimiter=None, encoding="utf-8", file=False):
+    def readCSV(self, path_or_csvstring, delimiter=None, file=False):
         """load CSV"""
         if delimiter == None:
             delimiter = self.specs["delimiter"]
@@ -58,7 +58,7 @@ class CSV:
             data = pd.read_csv(path_or_csvstring, delimiter=delimiter, low_memory=False)
         else:
             data = pd.read_csv(
-                io.StringIO(path_or_csvstring.decode(encoding)),
+                io.StringIO(path_or_csvstring),
                 delimiter=delimiter,
                 low_memory=False,
             )
