@@ -31,23 +31,60 @@
 import pandas as pd
 import math
 import io
+import logging
 
 
 class CSV:
-    &#34;&#34;&#34;
-    Helper class for CSV files, where named columns will be retrievable
+    &#34;&#34;&#34;Helper class for CSV files, where named columns will be retrievable
 
     The class needs the data being given as list of lists. Each row (outer list) contains multiple cells (inner list).
     If the data is given JSON like – as a list of dictionaries where each row (dictionary) contains the column names as keys and the cell content as value – the second constructor-parameter has to be set `True`.
+
+    Attributes:
+        specs: specifications for CSV, `delimiter` is defaulting to `;` and `linebreak` is defaulting to `\\n`.
     &#34;&#34;&#34;
 
-    data = {}
     specs = {
         &#34;delimiter&#34;: &#34;;&#34;,
         &#34;linebreak&#34;: &#34;\n&#34;,
     }
 
     def __init__(self, data={}, jsonLike=False):
+        self.data = {}
+        self.rows = []
+        self.rowCheck = False
+        self.loadData(data, jsonLike)
+
+    def __getitem__(self, index):
+        self.csvRows()
+        self.rowCheck = True
+        return self.rows[index]
+
+    def getCSV(self):
+        &#34;&#34;&#34;get CSV data
+
+        Return CSV data
+
+        Returns:
+            dict: keys are column titles, assigned lists are column values per row
+        &#34;&#34;&#34;
+        self.refreshFromRows()
+        return self.data
+
+    def loadData(self, data, jsonLike=False, skipRows=False):
+        &#34;&#34;&#34;load data
+
+        Method to load the data of the CSV.
+        If data is a list of dicts, the dicts should have the keys in
+        common and `jsonLike` shall be `True`.
+        If the data is a dict of column-keys with a list of column-values
+        where the index is the number of the row, `jsonLike` shall be `False`.
+
+        Args:
+            data (mixed): CSV data
+            jsonLike (bool): is the data JSON like? (default: `False`)
+            skipRows (bool): should the data be transferred into rows? DON&#39;T USE UNLESS YOU KNOW WHAT YOU&#39;RE DOING! (default: `False`)
+        &#34;&#34;&#34;
         if jsonLike:
             self.data = {}
             for row in data:
@@ -70,16 +107,43 @@ class CSV:
         else:
             self.data = data
 
+        if not skipRows:
+            self.csvRows(force=True)
+
     def setSpec(self, spec, val):
-        &#34;&#34;&#34;function to set specifications for this CSV instance&#34;&#34;&#34;
+        &#34;&#34;&#34;set specifications
+
+        Method to set specifications for this CSV instance
+        like the `delimiter` (default `;`) and the
+        `linebreak` (default `\\n`)
+
+        Args:
+            spec(str): name of specification
+            val(str): value for spec
+        &#34;&#34;&#34;
         self.specs[spec] = val
 
     def readFile(self, filepath, delimiter=None):
-        &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
+        &#34;&#34;&#34;read CSV file
+
+        Method to load especially a CSV file stored in the filesystem.
+
+        Args:
+            filepath (str): path to CSV file
+            delimiter (str): delimiter to resolve the CSV data (default: `None`)
+        &#34;&#34;&#34;
         self.readCSV(filepath, delimiter=delimiter, file=True)
 
     def readCSV(self, path_or_csvstring, delimiter=None, file=False):
-        &#34;&#34;&#34;load CSV&#34;&#34;&#34;
+        &#34;&#34;&#34;read CSV from string or file
+
+        [description]
+
+        Args:
+            path_or_csvstring (string): either the path to the file to resolve or CSV data itself
+            delimiter (str): delimiter to resolve the CSV data (default: `None`)
+            file (bool): is it a file to read? (default: `False`)
+        &#34;&#34;&#34;
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
         if file:
@@ -95,35 +159,96 @@ class CSV:
             rows[h] = data.get(h).to_list()
         self.data = rows
 
+        self.csvRows(force=True)
+
+    def csvRows(self, force=False):
+        &#34;&#34;&#34;prepare rows variable
+
+        Method to get row representation of CSV and prepare an additional variable
+        `rows` that allows us to use `CSV` object as iterable.
+
+        Args:
+            force (bool): Shall the row representation be renewed by force? (default: `False`)
+
+        Returns:
+            list: list of rows in CSV
+        &#34;&#34;&#34;
+        if self.rows == []:
+            force = True
+
+        if force:
+            self.rows = self.likeJSON()
+
+        return self.rows
+
+    def refreshFromRows(self):
+        &#34;&#34;&#34;reload the CSV from rows
+
+        When one iterates over the rows of a CSV class and changes values, e.g.
+        adding new columns or manipulate values, the CSV object needs to be
+        rebuilt from the rows ... that&#39;s what this method is doing.
+        &#34;&#34;&#34;
+        if self.rowCheck:
+            self.loadData(data=self.rows, jsonLike=True, skipRows=True)
+            self.rowCheck = False
+
     def likeJSON(self, keepEmpty=False, emptyValue=None):
-        &#34;&#34;&#34;function to turn CSV to JSON like list of dictionaries&#34;&#34;&#34;
-        keys = self.data.keys()
-        count = len(self.data[keys[0]])
-        i = 0
+        &#34;&#34;&#34;data to list of rows
+
+        Method to get row representation of CSV.
+
+        Args:
+            keepEmpty (bool): if set to True, empty values are kept in row representation (default: `False`)
+            emptyValue (mixed): value that should be used for kept empty values (default: `None`)
+
+        Returns:
+            list: list of rows in CSV
+        &#34;&#34;&#34;
+        self.refreshFromRows()
+
         jsonO = []
-        while i &lt; count:
-            row = {}
-            for key in keys:
-                value = self.data[key][i]
-                if value == &#34;&#34;:
-                    if keepEmpty:
-                        row[key] = emptyValue
-                else:
-                    row[key] = value
-            jsonO.append(row)
+        keys = list(self.data.keys())
+        if len(keys) &gt; 0:
+            count = len(self.data[keys[0]])
+            i = 0
+            while i &lt; count:
+                row = {}
+                for key in keys:
+                    value = self.data[key][i]
+                    if value == &#34;&#34;:
+                        if keepEmpty:
+                            row[key] = emptyValue
+                    else:
+                        row[key] = value
+                jsonO.append(row)
+                i += 1
         return jsonO
 
     def writeFile(self, filepath, delimiter=None, linebreak=None):
-        &#34;&#34;&#34;function to write out data of current object to a CSV file&#34;&#34;&#34;
+        &#34;&#34;&#34;write CSV file
+
+        Method to write out data of current object to a CSV file.
+
+        Args:
+            filepath (str): path to destination file
+            delimiter (str): delimiter to be used for column separation in CSV representation (default: `None`)
+            linebreak (str): linebreak to be used in CSV representation (default: `None`)
+        &#34;&#34;&#34;
+        self.refreshFromRows()
+
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
+
         if linebreak == None:
             linebreak = self.specs[&#34;linebreak&#34;]
+
         combined = [[k] + v for k, v in self.data.items()]
         cols = pd.DataFrame(combined).T.values.tolist()
         rows = []
+
         for r in cols:
             i = 0
+
             for c in r:
                 if c == None:
                     r[i] = &#34;&#34;
@@ -140,19 +265,31 @@ class CSV:
                     )
                 )
             )
+
         with open(filepath, &#34;w&#34;) as csv_file:
             csv_file.write(linebreak.join(rows))
 
 
 class ColumnHelper:
-    &#34;&#34;&#34;Helper class for columns&#34;&#34;&#34;
+    &#34;&#34;&#34;Helper class for columns
+
+    Attributes:
+        ord0: integer representing the Unicode character `A`
+    &#34;&#34;&#34;
 
     ord0 = ord(&#34;A&#34;)
 
     def xlsCol2Int(self, colName):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;XLS col to int
+
         According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
-        function is meant to translate the alphabetic “number” to an integer
+        method is meant to translate the alphabetic “number” to an integer.
+
+        Args:
+            colName (str): XLS column representation, e.g. `A` or `AA`, ...
+
+        Returns:
+            int: index representation as integer
         &#34;&#34;&#34;
         val = 0
         for ch in colName:  # base-26 decoding &#34;+1&#34;
@@ -160,10 +297,17 @@ class ColumnHelper:
         return val - 1
 
     def int2xlsCol(self, colInt):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;int index to XLS index
+
         According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
         function is meant to translate an integer to its alphabetic “number”
         representation.
+
+        Args:
+            colInt (int): index to be transferred to XLS column representation
+
+        Returns:
+            str: XLS column representation
         &#34;&#34;&#34;
         chars = []
         while True:
@@ -193,26 +337,67 @@ class ColumnHelper:
 <dd>
 <div class="desc"><p>Helper class for CSV files, where named columns will be retrievable</p>
 <p>The class needs the data being given as list of lists. Each row (outer list) contains multiple cells (inner list).
-If the data is given JSON like – as a list of dictionaries where each row (dictionary) contains the column names as keys and the cell content as value – the second constructor-parameter has to be set <code>True</code>.</p></div>
+If the data is given JSON like – as a list of dictionaries where each row (dictionary) contains the column names as keys and the cell content as value – the second constructor-parameter has to be set <code>True</code>.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>specs</code></strong></dt>
+<dd>specifications for CSV, <code>delimiter</code> is defaulting to <code>;</code> and <code>linebreak</code> is defaulting to <code>\n</code>.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CSV:
-    &#34;&#34;&#34;
-    Helper class for CSV files, where named columns will be retrievable
+    &#34;&#34;&#34;Helper class for CSV files, where named columns will be retrievable
 
     The class needs the data being given as list of lists. Each row (outer list) contains multiple cells (inner list).
     If the data is given JSON like – as a list of dictionaries where each row (dictionary) contains the column names as keys and the cell content as value – the second constructor-parameter has to be set `True`.
+
+    Attributes:
+        specs: specifications for CSV, `delimiter` is defaulting to `;` and `linebreak` is defaulting to `\\n`.
     &#34;&#34;&#34;
 
-    data = {}
     specs = {
         &#34;delimiter&#34;: &#34;;&#34;,
         &#34;linebreak&#34;: &#34;\n&#34;,
     }
 
     def __init__(self, data={}, jsonLike=False):
+        self.data = {}
+        self.rows = []
+        self.rowCheck = False
+        self.loadData(data, jsonLike)
+
+    def __getitem__(self, index):
+        self.csvRows()
+        self.rowCheck = True
+        return self.rows[index]
+
+    def getCSV(self):
+        &#34;&#34;&#34;get CSV data
+
+        Return CSV data
+
+        Returns:
+            dict: keys are column titles, assigned lists are column values per row
+        &#34;&#34;&#34;
+        self.refreshFromRows()
+        return self.data
+
+    def loadData(self, data, jsonLike=False, skipRows=False):
+        &#34;&#34;&#34;load data
+
+        Method to load the data of the CSV.
+        If data is a list of dicts, the dicts should have the keys in
+        common and `jsonLike` shall be `True`.
+        If the data is a dict of column-keys with a list of column-values
+        where the index is the number of the row, `jsonLike` shall be `False`.
+
+        Args:
+            data (mixed): CSV data
+            jsonLike (bool): is the data JSON like? (default: `False`)
+            skipRows (bool): should the data be transferred into rows? DON&#39;T USE UNLESS YOU KNOW WHAT YOU&#39;RE DOING! (default: `False`)
+        &#34;&#34;&#34;
         if jsonLike:
             self.data = {}
             for row in data:
@@ -235,16 +420,43 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
         else:
             self.data = data
 
+        if not skipRows:
+            self.csvRows(force=True)
+
     def setSpec(self, spec, val):
-        &#34;&#34;&#34;function to set specifications for this CSV instance&#34;&#34;&#34;
+        &#34;&#34;&#34;set specifications
+
+        Method to set specifications for this CSV instance
+        like the `delimiter` (default `;`) and the
+        `linebreak` (default `\\n`)
+
+        Args:
+            spec(str): name of specification
+            val(str): value for spec
+        &#34;&#34;&#34;
         self.specs[spec] = val
 
     def readFile(self, filepath, delimiter=None):
-        &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
+        &#34;&#34;&#34;read CSV file
+
+        Method to load especially a CSV file stored in the filesystem.
+
+        Args:
+            filepath (str): path to CSV file
+            delimiter (str): delimiter to resolve the CSV data (default: `None`)
+        &#34;&#34;&#34;
         self.readCSV(filepath, delimiter=delimiter, file=True)
 
     def readCSV(self, path_or_csvstring, delimiter=None, file=False):
-        &#34;&#34;&#34;load CSV&#34;&#34;&#34;
+        &#34;&#34;&#34;read CSV from string or file
+
+        [description]
+
+        Args:
+            path_or_csvstring (string): either the path to the file to resolve or CSV data itself
+            delimiter (str): delimiter to resolve the CSV data (default: `None`)
+            file (bool): is it a file to read? (default: `False`)
+        &#34;&#34;&#34;
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
         if file:
@@ -260,35 +472,96 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
             rows[h] = data.get(h).to_list()
         self.data = rows
 
+        self.csvRows(force=True)
+
+    def csvRows(self, force=False):
+        &#34;&#34;&#34;prepare rows variable
+
+        Method to get row representation of CSV and prepare an additional variable
+        `rows` that allows us to use `CSV` object as iterable.
+
+        Args:
+            force (bool): Shall the row representation be renewed by force? (default: `False`)
+
+        Returns:
+            list: list of rows in CSV
+        &#34;&#34;&#34;
+        if self.rows == []:
+            force = True
+
+        if force:
+            self.rows = self.likeJSON()
+
+        return self.rows
+
+    def refreshFromRows(self):
+        &#34;&#34;&#34;reload the CSV from rows
+
+        When one iterates over the rows of a CSV class and changes values, e.g.
+        adding new columns or manipulate values, the CSV object needs to be
+        rebuilt from the rows ... that&#39;s what this method is doing.
+        &#34;&#34;&#34;
+        if self.rowCheck:
+            self.loadData(data=self.rows, jsonLike=True, skipRows=True)
+            self.rowCheck = False
+
     def likeJSON(self, keepEmpty=False, emptyValue=None):
-        &#34;&#34;&#34;function to turn CSV to JSON like list of dictionaries&#34;&#34;&#34;
-        keys = self.data.keys()
-        count = len(self.data[keys[0]])
-        i = 0
+        &#34;&#34;&#34;data to list of rows
+
+        Method to get row representation of CSV.
+
+        Args:
+            keepEmpty (bool): if set to True, empty values are kept in row representation (default: `False`)
+            emptyValue (mixed): value that should be used for kept empty values (default: `None`)
+
+        Returns:
+            list: list of rows in CSV
+        &#34;&#34;&#34;
+        self.refreshFromRows()
+
         jsonO = []
-        while i &lt; count:
-            row = {}
-            for key in keys:
-                value = self.data[key][i]
-                if value == &#34;&#34;:
-                    if keepEmpty:
-                        row[key] = emptyValue
-                else:
-                    row[key] = value
-            jsonO.append(row)
+        keys = list(self.data.keys())
+        if len(keys) &gt; 0:
+            count = len(self.data[keys[0]])
+            i = 0
+            while i &lt; count:
+                row = {}
+                for key in keys:
+                    value = self.data[key][i]
+                    if value == &#34;&#34;:
+                        if keepEmpty:
+                            row[key] = emptyValue
+                    else:
+                        row[key] = value
+                jsonO.append(row)
+                i += 1
         return jsonO
 
     def writeFile(self, filepath, delimiter=None, linebreak=None):
-        &#34;&#34;&#34;function to write out data of current object to a CSV file&#34;&#34;&#34;
+        &#34;&#34;&#34;write CSV file
+
+        Method to write out data of current object to a CSV file.
+
+        Args:
+            filepath (str): path to destination file
+            delimiter (str): delimiter to be used for column separation in CSV representation (default: `None`)
+            linebreak (str): linebreak to be used in CSV representation (default: `None`)
+        &#34;&#34;&#34;
+        self.refreshFromRows()
+
         if delimiter == None:
             delimiter = self.specs[&#34;delimiter&#34;]
+
         if linebreak == None:
             linebreak = self.specs[&#34;linebreak&#34;]
+
         combined = [[k] + v for k, v in self.data.items()]
         cols = pd.DataFrame(combined).T.values.tolist()
         rows = []
+
         for r in cols:
             i = 0
+
             for c in r:
                 if c == None:
                     r[i] = &#34;&#34;
@@ -305,15 +578,12 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
                     )
                 )
             )
+
         with open(filepath, &#34;w&#34;) as csv_file:
             csv_file.write(linebreak.join(rows))</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="CSV.CSV.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="CSV.CSV.specs"><code class="name">var <span class="ident">specs</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -321,45 +591,222 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="CSV.CSV.csvRows"><code class="name flex">
+<span>def <span class="ident">csvRows</span></span>(<span>self, force=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>prepare rows variable</p>
+<p>Method to get row representation of CSV and prepare an additional variable
+<code>rows</code> that allows us to use <code><a title="CSV.CSV" href="#CSV.CSV">CSV</a></code> object as iterable.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>force</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Shall the row representation be renewed by force? (default: <code>False</code>)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>list of rows in CSV</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def csvRows(self, force=False):
+    &#34;&#34;&#34;prepare rows variable
+
+    Method to get row representation of CSV and prepare an additional variable
+    `rows` that allows us to use `CSV` object as iterable.
+
+    Args:
+        force (bool): Shall the row representation be renewed by force? (default: `False`)
+
+    Returns:
+        list: list of rows in CSV
+    &#34;&#34;&#34;
+    if self.rows == []:
+        force = True
+
+    if force:
+        self.rows = self.likeJSON()
+
+    return self.rows</code></pre>
+</details>
+</dd>
+<dt id="CSV.CSV.getCSV"><code class="name flex">
+<span>def <span class="ident">getCSV</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get CSV data</p>
+<p>Return CSV data</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>keys are column titles, assigned lists are column values per row</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getCSV(self):
+    &#34;&#34;&#34;get CSV data
+
+    Return CSV data
+
+    Returns:
+        dict: keys are column titles, assigned lists are column values per row
+    &#34;&#34;&#34;
+    self.refreshFromRows()
+    return self.data</code></pre>
+</details>
+</dd>
 <dt id="CSV.CSV.likeJSON"><code class="name flex">
 <span>def <span class="ident">likeJSON</span></span>(<span>self, keepEmpty=False, emptyValue=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>function to turn CSV to JSON like list of dictionaries</p></div>
+<div class="desc"><p>data to list of rows</p>
+<p>Method to get row representation of CSV.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>keepEmpty</code></strong> :&ensp;<code>bool</code></dt>
+<dd>if set to True, empty values are kept in row representation (default: <code>False</code>)</dd>
+<dt><strong><code>emptyValue</code></strong> :&ensp;<code>mixed</code></dt>
+<dd>value that should be used for kept empty values (default: <code>None</code>)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>list of rows in CSV</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def likeJSON(self, keepEmpty=False, emptyValue=None):
-    &#34;&#34;&#34;function to turn CSV to JSON like list of dictionaries&#34;&#34;&#34;
-    keys = self.data.keys()
-    count = len(self.data[keys[0]])
-    i = 0
+    &#34;&#34;&#34;data to list of rows
+
+    Method to get row representation of CSV.
+
+    Args:
+        keepEmpty (bool): if set to True, empty values are kept in row representation (default: `False`)
+        emptyValue (mixed): value that should be used for kept empty values (default: `None`)
+
+    Returns:
+        list: list of rows in CSV
+    &#34;&#34;&#34;
+    self.refreshFromRows()
+
     jsonO = []
-    while i &lt; count:
-        row = {}
-        for key in keys:
-            value = self.data[key][i]
-            if value == &#34;&#34;:
-                if keepEmpty:
-                    row[key] = emptyValue
-            else:
-                row[key] = value
-        jsonO.append(row)
+    keys = list(self.data.keys())
+    if len(keys) &gt; 0:
+        count = len(self.data[keys[0]])
+        i = 0
+        while i &lt; count:
+            row = {}
+            for key in keys:
+                value = self.data[key][i]
+                if value == &#34;&#34;:
+                    if keepEmpty:
+                        row[key] = emptyValue
+                else:
+                    row[key] = value
+            jsonO.append(row)
+            i += 1
     return jsonO</code></pre>
+</details>
+</dd>
+<dt id="CSV.CSV.loadData"><code class="name flex">
+<span>def <span class="ident">loadData</span></span>(<span>self, data, jsonLike=False, skipRows=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load data</p>
+<p>Method to load the data of the CSV.
+If data is a list of dicts, the dicts should have the keys in
+common and <code>jsonLike</code> shall be <code>True</code>.
+If the data is a dict of column-keys with a list of column-values
+where the index is the number of the row, <code>jsonLike</code> shall be <code>False</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>mixed</code></dt>
+<dd>CSV data</dd>
+<dt><strong><code>jsonLike</code></strong> :&ensp;<code>bool</code></dt>
+<dd>is the data JSON like? (default: <code>False</code>)</dd>
+<dt><strong><code>skipRows</code></strong> :&ensp;<code>bool</code></dt>
+<dd>should the data be transferred into rows? DON'T USE UNLESS YOU KNOW WHAT YOU'RE DOING! (default: <code>False</code>)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loadData(self, data, jsonLike=False, skipRows=False):
+    &#34;&#34;&#34;load data
+
+    Method to load the data of the CSV.
+    If data is a list of dicts, the dicts should have the keys in
+    common and `jsonLike` shall be `True`.
+    If the data is a dict of column-keys with a list of column-values
+    where the index is the number of the row, `jsonLike` shall be `False`.
+
+    Args:
+        data (mixed): CSV data
+        jsonLike (bool): is the data JSON like? (default: `False`)
+        skipRows (bool): should the data be transferred into rows? DON&#39;T USE UNLESS YOU KNOW WHAT YOU&#39;RE DOING! (default: `False`)
+    &#34;&#34;&#34;
+    if jsonLike:
+        self.data = {}
+        for row in data:
+            try:
+                existingRowCount = len(next(iter(self.data.values())))
+            except:
+                existingRowCount = 0
+            keys = row.keys()
+            for k in keys:
+                if k not in self.data:
+                    if existingRowCount &gt; 0:
+                        self.data[k] = [None] * existingRowCount
+                    else:
+                        self.data[k] = []
+            for k in self.data.keys():
+                if k in row:
+                    self.data[k].append(row[k])
+                else:
+                    self.data[k].append(None)
+    else:
+        self.data = data
+
+    if not skipRows:
+        self.csvRows(force=True)</code></pre>
 </details>
 </dd>
 <dt id="CSV.CSV.readCSV"><code class="name flex">
 <span>def <span class="ident">readCSV</span></span>(<span>self, path_or_csvstring, delimiter=None, file=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load CSV</p></div>
+<div class="desc"><p>read CSV from string or file</p>
+<p>[description]</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path_or_csvstring</code></strong> :&ensp;<code>string</code></dt>
+<dd>either the path to the file to resolve or CSV data itself</dd>
+<dt><strong><code>delimiter</code></strong> :&ensp;<code>str</code></dt>
+<dd>delimiter to resolve the CSV data (default: <code>None</code>)</dd>
+<dt><strong><code>file</code></strong> :&ensp;<code>bool</code></dt>
+<dd>is it a file to read? (default: <code>False</code>)</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def readCSV(self, path_or_csvstring, delimiter=None, file=False):
-    &#34;&#34;&#34;load CSV&#34;&#34;&#34;
+    &#34;&#34;&#34;read CSV from string or file
+
+    [description]
+
+    Args:
+        path_or_csvstring (string): either the path to the file to resolve or CSV data itself
+        delimiter (str): delimiter to resolve the CSV data (default: `None`)
+        file (bool): is it a file to read? (default: `False`)
+    &#34;&#34;&#34;
     if delimiter == None:
         delimiter = self.specs[&#34;delimiter&#34;]
     if file:
@@ -373,34 +820,90 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
     rows = {}
     for h in data.columns:
         rows[h] = data.get(h).to_list()
-    self.data = rows</code></pre>
+    self.data = rows
+
+    self.csvRows(force=True)</code></pre>
 </details>
 </dd>
 <dt id="CSV.CSV.readFile"><code class="name flex">
 <span>def <span class="ident">readFile</span></span>(<span>self, filepath, delimiter=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>read a CSV file</p></div>
+<div class="desc"><p>read CSV file</p>
+<p>Method to load especially a CSV file stored in the filesystem.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filepath</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to CSV file</dd>
+<dt><strong><code>delimiter</code></strong> :&ensp;<code>str</code></dt>
+<dd>delimiter to resolve the CSV data (default: <code>None</code>)</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def readFile(self, filepath, delimiter=None):
-    &#34;&#34;&#34;read a CSV file&#34;&#34;&#34;
+    &#34;&#34;&#34;read CSV file
+
+    Method to load especially a CSV file stored in the filesystem.
+
+    Args:
+        filepath (str): path to CSV file
+        delimiter (str): delimiter to resolve the CSV data (default: `None`)
+    &#34;&#34;&#34;
     self.readCSV(filepath, delimiter=delimiter, file=True)</code></pre>
+</details>
+</dd>
+<dt id="CSV.CSV.refreshFromRows"><code class="name flex">
+<span>def <span class="ident">refreshFromRows</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>reload the CSV from rows</p>
+<p>When one iterates over the rows of a CSV class and changes values, e.g.
+adding new columns or manipulate values, the CSV object needs to be
+rebuilt from the rows &hellip; that's what this method is doing.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def refreshFromRows(self):
+    &#34;&#34;&#34;reload the CSV from rows
+
+    When one iterates over the rows of a CSV class and changes values, e.g.
+    adding new columns or manipulate values, the CSV object needs to be
+    rebuilt from the rows ... that&#39;s what this method is doing.
+    &#34;&#34;&#34;
+    if self.rowCheck:
+        self.loadData(data=self.rows, jsonLike=True, skipRows=True)
+        self.rowCheck = False</code></pre>
 </details>
 </dd>
 <dt id="CSV.CSV.setSpec"><code class="name flex">
 <span>def <span class="ident">setSpec</span></span>(<span>self, spec, val)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>function to set specifications for this CSV instance</p></div>
+<div class="desc"><p>set specifications</p>
+<p>Method to set specifications for this CSV instance
+like the <code>delimiter</code> (default <code>;</code>) and the
+<code>linebreak</code> (default <code>\n</code>)</p>
+<h2 id="args">Args</h2>
+<p>spec(str): name of specification
+val(str): value for spec</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def setSpec(self, spec, val):
-    &#34;&#34;&#34;function to set specifications for this CSV instance&#34;&#34;&#34;
+    &#34;&#34;&#34;set specifications
+
+    Method to set specifications for this CSV instance
+    like the `delimiter` (default `;`) and the
+    `linebreak` (default `\\n`)
+
+    Args:
+        spec(str): name of specification
+        val(str): value for spec
+    &#34;&#34;&#34;
     self.specs[spec] = val</code></pre>
 </details>
 </dd>
@@ -408,22 +911,46 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <span>def <span class="ident">writeFile</span></span>(<span>self, filepath, delimiter=None, linebreak=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>function to write out data of current object to a CSV file</p></div>
+<div class="desc"><p>write CSV file</p>
+<p>Method to write out data of current object to a CSV file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filepath</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to destination file</dd>
+<dt><strong><code>delimiter</code></strong> :&ensp;<code>str</code></dt>
+<dd>delimiter to be used for column separation in CSV representation (default: <code>None</code>)</dd>
+<dt><strong><code>linebreak</code></strong> :&ensp;<code>str</code></dt>
+<dd>linebreak to be used in CSV representation (default: <code>None</code>)</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def writeFile(self, filepath, delimiter=None, linebreak=None):
-    &#34;&#34;&#34;function to write out data of current object to a CSV file&#34;&#34;&#34;
+    &#34;&#34;&#34;write CSV file
+
+    Method to write out data of current object to a CSV file.
+
+    Args:
+        filepath (str): path to destination file
+        delimiter (str): delimiter to be used for column separation in CSV representation (default: `None`)
+        linebreak (str): linebreak to be used in CSV representation (default: `None`)
+    &#34;&#34;&#34;
+    self.refreshFromRows()
+
     if delimiter == None:
         delimiter = self.specs[&#34;delimiter&#34;]
+
     if linebreak == None:
         linebreak = self.specs[&#34;linebreak&#34;]
+
     combined = [[k] + v for k, v in self.data.items()]
     cols = pd.DataFrame(combined).T.values.tolist()
     rows = []
+
     for r in cols:
         i = 0
+
         for c in r:
             if c == None:
                 r[i] = &#34;&#34;
@@ -440,6 +967,7 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
                 )
             )
         )
+
     with open(filepath, &#34;w&#34;) as csv_file:
         csv_file.write(linebreak.join(rows))</code></pre>
 </details>
@@ -450,20 +978,36 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <span>class <span class="ident">ColumnHelper</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class for columns</p></div>
+<div class="desc"><p>Helper class for columns</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>ord0</code></strong></dt>
+<dd>integer representing the Unicode character <code>A</code></dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ColumnHelper:
-    &#34;&#34;&#34;Helper class for columns&#34;&#34;&#34;
+    &#34;&#34;&#34;Helper class for columns
+
+    Attributes:
+        ord0: integer representing the Unicode character `A`
+    &#34;&#34;&#34;
 
     ord0 = ord(&#34;A&#34;)
 
     def xlsCol2Int(self, colName):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;XLS col to int
+
         According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
-        function is meant to translate the alphabetic “number” to an integer
+        method is meant to translate the alphabetic “number” to an integer.
+
+        Args:
+            colName (str): XLS column representation, e.g. `A` or `AA`, ...
+
+        Returns:
+            int: index representation as integer
         &#34;&#34;&#34;
         val = 0
         for ch in colName:  # base-26 decoding &#34;+1&#34;
@@ -471,10 +1015,17 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
         return val - 1
 
     def int2xlsCol(self, colInt):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;int index to XLS index
+
         According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
         function is meant to translate an integer to its alphabetic “number”
         representation.
+
+        Args:
+            colInt (int): index to be transferred to XLS column representation
+
+        Returns:
+            str: XLS column representation
         &#34;&#34;&#34;
         chars = []
         while True:
@@ -500,18 +1051,36 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
 <span>def <span class="ident">int2xlsCol</span></span>(<span>self, colInt)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>According to <code>A</code> is <code>0</code>, <code>Z</code> is <code>26</code>, <code>AA</code> is <code>27</code> and so on, this
+<div class="desc"><p>int index to XLS index</p>
+<p>According to <code>A</code> is <code>0</code>, <code>Z</code> is <code>26</code>, <code>AA</code> is <code>27</code> and so on, this
 function is meant to translate an integer to its alphabetic “number”
-representation.</p></div>
+representation.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>colInt</code></strong> :&ensp;<code>int</code></dt>
+<dd>index to be transferred to XLS column representation</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>XLS column representation</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def int2xlsCol(self, colInt):
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;int index to XLS index
+
     According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
     function is meant to translate an integer to its alphabetic “number”
     representation.
+
+    Args:
+        colInt (int): index to be transferred to XLS column representation
+
+    Returns:
+        str: XLS column representation
     &#34;&#34;&#34;
     chars = []
     while True:
@@ -529,16 +1098,34 @@ representation.</p></div>
 <span>def <span class="ident">xlsCol2Int</span></span>(<span>self, colName)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>According to <code>A</code> is <code>0</code>, <code>Z</code> is <code>26</code>, <code>AA</code> is <code>27</code> and so on, this
-function is meant to translate the alphabetic “number” to an integer</p></div>
+<div class="desc"><p>XLS col to int</p>
+<p>According to <code>A</code> is <code>0</code>, <code>Z</code> is <code>26</code>, <code>AA</code> is <code>27</code> and so on, this
+method is meant to translate the alphabetic “number” to an integer.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>colName</code></strong> :&ensp;<code>str</code></dt>
+<dd>XLS column representation, e.g. <code>A</code> or <code>AA</code>, &hellip;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>index representation as integer</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def xlsCol2Int(self, colName):
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;XLS col to int
+
     According to `A` is `0`, `Z` is `26`, `AA` is `27` and so on, this
-    function is meant to translate the alphabetic “number” to an integer
+    method is meant to translate the alphabetic “number” to an integer.
+
+    Args:
+        colName (str): XLS column representation, e.g. `A` or `AA`, ...
+
+    Returns:
+        int: index representation as integer
     &#34;&#34;&#34;
     val = 0
     for ch in colName:  # base-26 decoding &#34;+1&#34;
@@ -562,10 +1149,13 @@ function is meant to translate the alphabetic “number” to an integer</p></di
 <li>
 <h4><code><a title="CSV.CSV" href="#CSV.CSV">CSV</a></code></h4>
 <ul class="two-column">
-<li><code><a title="CSV.CSV.data" href="#CSV.CSV.data">data</a></code></li>
+<li><code><a title="CSV.CSV.csvRows" href="#CSV.CSV.csvRows">csvRows</a></code></li>
+<li><code><a title="CSV.CSV.getCSV" href="#CSV.CSV.getCSV">getCSV</a></code></li>
 <li><code><a title="CSV.CSV.likeJSON" href="#CSV.CSV.likeJSON">likeJSON</a></code></li>
+<li><code><a title="CSV.CSV.loadData" href="#CSV.CSV.loadData">loadData</a></code></li>
 <li><code><a title="CSV.CSV.readCSV" href="#CSV.CSV.readCSV">readCSV</a></code></li>
 <li><code><a title="CSV.CSV.readFile" href="#CSV.CSV.readFile">readFile</a></code></li>
+<li><code><a title="CSV.CSV.refreshFromRows" href="#CSV.CSV.refreshFromRows">refreshFromRows</a></code></li>
 <li><code><a title="CSV.CSV.setSpec" href="#CSV.CSV.setSpec">setSpec</a></code></li>
 <li><code><a title="CSV.CSV.specs" href="#CSV.CSV.specs">specs</a></code></li>
 <li><code><a title="CSV.CSV.writeFile" href="#CSV.CSV.writeFile">writeFile</a></code></li>
