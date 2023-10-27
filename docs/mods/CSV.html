@@ -60,6 +60,35 @@ class CSV:
         self.rowCheck = True
         return self.rows[index]
 
+    def __len__(self):
+        &#34;&#34;&#34;count rows in CSV
+
+        Returns:
+            int: numbers of rows in CSV
+        &#34;&#34;&#34;
+        return len(self.rows)
+
+    def remove(self, row):
+        &#34;&#34;&#34;remove row from CSV
+
+        Args:
+            row (dict): row object to remove from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        self.rows.remove(row)
+
+    def pop(self, index):
+        &#34;&#34;&#34;pop row from CSV – like from lists
+
+        Args:
+            index (int): index of row to pop
+
+        Returns:
+            dict: row removed / poped from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        return self.rows.pop(index)
+
     def getCSV(self):
         &#34;&#34;&#34;get CSV data
 
@@ -372,6 +401,35 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
         self.csvRows()
         self.rowCheck = True
         return self.rows[index]
+
+    def __len__(self):
+        &#34;&#34;&#34;count rows in CSV
+
+        Returns:
+            int: numbers of rows in CSV
+        &#34;&#34;&#34;
+        return len(self.rows)
+
+    def remove(self, row):
+        &#34;&#34;&#34;remove row from CSV
+
+        Args:
+            row (dict): row object to remove from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        self.rows.remove(row)
+
+    def pop(self, index):
+        &#34;&#34;&#34;pop row from CSV – like from lists
+
+        Args:
+            index (int): index of row to pop
+
+        Returns:
+            dict: row removed / poped from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        return self.rows.pop(index)
 
     def getCSV(self):
         &#34;&#34;&#34;get CSV data
@@ -778,6 +836,38 @@ where the index is the number of the row, <code>jsonLike</code> shall be <code>F
         self.csvRows(force=True)</code></pre>
 </details>
 </dd>
+<dt id="CSV.CSV.pop"><code class="name flex">
+<span>def <span class="ident">pop</span></span>(<span>self, index)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>pop row from CSV – like from lists</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>index</code></strong> :&ensp;<code>int</code></dt>
+<dd>index of row to pop</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>row removed / poped from CSV</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pop(self, index):
+    &#34;&#34;&#34;pop row from CSV – like from lists
+
+    Args:
+        index (int): index of row to pop
+
+    Returns:
+        dict: row removed / poped from CSV
+    &#34;&#34;&#34;
+    self.rowCheck = True
+    return self.rows.pop(index)</code></pre>
+</details>
+</dd>
 <dt id="CSV.CSV.readCSV"><code class="name flex">
 <span>def <span class="ident">readCSV</span></span>(<span>self, path_or_csvstring, delimiter=None, file=False)</span>
 </code></dt>
@@ -876,6 +966,30 @@ rebuilt from the rows &hellip; that's what this method is doing.</p></div>
     if self.rowCheck:
         self.loadData(data=self.rows, jsonLike=True, skipRows=True)
         self.rowCheck = False</code></pre>
+</details>
+</dd>
+<dt id="CSV.CSV.remove"><code class="name flex">
+<span>def <span class="ident">remove</span></span>(<span>self, row)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>remove row from CSV</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>row</code></strong> :&ensp;<code>dict</code></dt>
+<dd>row object to remove from CSV</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove(self, row):
+    &#34;&#34;&#34;remove row from CSV
+
+    Args:
+        row (dict): row object to remove from CSV
+    &#34;&#34;&#34;
+    self.rowCheck = True
+    self.rows.remove(row)</code></pre>
 </details>
 </dd>
 <dt id="CSV.CSV.setSpec"><code class="name flex">
@@ -1153,9 +1267,11 @@ method is meant to translate the alphabetic “number” to an integer.</p>
 <li><code><a title="CSV.CSV.getCSV" href="#CSV.CSV.getCSV">getCSV</a></code></li>
 <li><code><a title="CSV.CSV.likeJSON" href="#CSV.CSV.likeJSON">likeJSON</a></code></li>
 <li><code><a title="CSV.CSV.loadData" href="#CSV.CSV.loadData">loadData</a></code></li>
+<li><code><a title="CSV.CSV.pop" href="#CSV.CSV.pop">pop</a></code></li>
 <li><code><a title="CSV.CSV.readCSV" href="#CSV.CSV.readCSV">readCSV</a></code></li>
 <li><code><a title="CSV.CSV.readFile" href="#CSV.CSV.readFile">readFile</a></code></li>
 <li><code><a title="CSV.CSV.refreshFromRows" href="#CSV.CSV.refreshFromRows">refreshFromRows</a></code></li>
+<li><code><a title="CSV.CSV.remove" href="#CSV.CSV.remove">remove</a></code></li>
 <li><code><a title="CSV.CSV.setSpec" href="#CSV.CSV.setSpec">setSpec</a></code></li>
 <li><code><a title="CSV.CSV.specs" href="#CSV.CSV.specs">specs</a></code></li>
 <li><code><a title="CSV.CSV.writeFile" href="#CSV.CSV.writeFile">writeFile</a></code></li>
