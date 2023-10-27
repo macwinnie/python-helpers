@@ -21,16 +21,51 @@ class CSV:
         "linebreak": "\n",
     }
 
+
     def __init__(self, data={}, jsonLike=False):
         self.data = {}
         self.rows = []
         self.rowCheck = False
         self.loadData(data, jsonLike)
 
+
     def __getitem__(self, index):
         self.csvRows()
         self.rowCheck = True
         return self.rows[index]
+
+
+    def __len__(self):
+        """count rows in CSV
+
+        Returns:
+            int: numbers of rows in CSV
+        """
+        return len(self.rows)
+
+
+    def remove(self, row):
+        """remove row from CSV
+
+        Args:
+            row (dict): row object to remove from CSV
+        """
+        self.rowCheck = True
+        self.rows.remove(row)
+
+
+    def pop(self, index):
+        """pop row from CSV – like from lists
+
+        Args:
+            index (int): index of row to pop
+
+        Returns:
+            dict: row removed / poped from CSV
+        """
+        self.rowCheck = True
+        return self.rows.pop(index)
+
 
     def getCSV(self):
         """get CSV data
@@ -42,6 +77,7 @@ class CSV:
         """
         self.refreshFromRows()
         return self.data
+
 
     def loadData(self, data, jsonLike=False, skipRows=False):
         """load data
@@ -82,6 +118,7 @@ class CSV:
         if not skipRows:
             self.csvRows(force=True)
 
+
     def setSpec(self, spec, val):
         """set specifications
 
@@ -95,6 +132,7 @@ class CSV:
         """
         self.specs[spec] = val
 
+
     def readFile(self, filepath, delimiter=None):
         """read CSV file
 
@@ -105,6 +143,7 @@ class CSV:
             delimiter (str): delimiter to resolve the CSV data (default: `None`)
         """
         self.readCSV(filepath, delimiter=delimiter, file=True)
+
 
     def readCSV(self, path_or_csvstring, delimiter=None, file=False):
         """read CSV from string or file
@@ -133,6 +172,7 @@ class CSV:
 
         self.csvRows(force=True)
 
+
     def csvRows(self, force=False):
         """prepare rows variable
 
@@ -153,6 +193,7 @@ class CSV:
 
         return self.rows
 
+
     def refreshFromRows(self):
         """reload the CSV from rows
 
@@ -163,6 +204,7 @@ class CSV:
         if self.rowCheck:
             self.loadData(data=self.rows, jsonLike=True, skipRows=True)
             self.rowCheck = False
+
 
     def likeJSON(self, keepEmpty=False, emptyValue=None):
         """data to list of rows
@@ -195,6 +237,7 @@ class CSV:
                 jsonO.append(row)
                 i += 1
         return jsonO
+
 
     def writeFile(self, filepath, delimiter=None, linebreak=None):
         """write CSV file
@@ -267,6 +310,7 @@ class ColumnHelper:
         for ch in colName:  # base-26 decoding "+1"
             val = val * 26 + ord(ch) - self.ord0 + 1
         return val - 1
+
 
     def int2xlsCol(self, colInt):
         """int index to XLS index
