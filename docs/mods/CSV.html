@@ -114,6 +114,7 @@ class CSV:
             jsonLike (bool): is the data JSON like? (default: `False`)
             skipRows (bool): should the data be transferred into rows? DON&#39;T USE UNLESS YOU KNOW WHAT YOU&#39;RE DOING! (default: `False`)
         &#34;&#34;&#34;
+        self.rowCheck = False
         if jsonLike:
             self.data = {}
             for row in data:
@@ -456,6 +457,7 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
             jsonLike (bool): is the data JSON like? (default: `False`)
             skipRows (bool): should the data be transferred into rows? DON&#39;T USE UNLESS YOU KNOW WHAT YOU&#39;RE DOING! (default: `False`)
         &#34;&#34;&#34;
+        self.rowCheck = False
         if jsonLike:
             self.data = {}
             for row in data:
@@ -810,6 +812,7 @@ where the index is the number of the row, <code>jsonLike</code> shall be <code>F
         jsonLike (bool): is the data JSON like? (default: `False`)
         skipRows (bool): should the data be transferred into rows? DON&#39;T USE UNLESS YOU KNOW WHAT YOU&#39;RE DOING! (default: `False`)
     &#34;&#34;&#34;
+    self.rowCheck = False
     if jsonLike:
         self.data = {}
         for row in data:
