@@ -86,6 +86,7 @@ class CSV:
             jsonLike (bool): is the data JSON like? (default: `False`)
             skipRows (bool): should the data be transferred into rows? DON'T USE UNLESS YOU KNOW WHAT YOU'RE DOING! (default: `False`)
         """
+        self.rowCheck = False
         if jsonLike:
             self.data = {}
             for row in data:
