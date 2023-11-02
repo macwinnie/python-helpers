@@ -61,6 +61,38 @@ class CSV:
         self.rowCheck = True
         return self.rows.pop(index)
 
+    def __len__(self):
+        """count rows in CSV
+
+        Returns:
+            int: numbers of rows in CSV
+        """
+        return len(self.rows)
+
+
+    def remove(self, row):
+        """remove row from CSV
+
+        Args:
+            row (dict): row object to remove from CSV
+        """
+        self.rowCheck = True
+        self.rows.remove(row)
+
+
+    def pop(self, index):
+        """pop row from CSV – like from lists
+
+        Args:
+            index (int): index of row to pop
+
+        Returns:
+            dict: row removed / poped from CSV
+        """
+        self.rowCheck = True
+        return self.rows.pop(index)
+
+
     def getCSV(self):
         """get CSV data
 
