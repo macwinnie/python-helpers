@@ -69,7 +69,6 @@ class CSV:
         """
         return len(self.rows)
 
-
     def remove(self, row):
         """remove row from CSV
 
@@ -78,7 +77,6 @@ class CSV:
         """
         self.rowCheck = True
         self.rows.remove(row)
-
 
     def pop(self, index):
         """pop row from CSV – like from lists
@@ -91,7 +89,6 @@ class CSV:
         """
         self.rowCheck = True
         return self.rows.pop(index)
-
 
     def getCSV(self):
         """get CSV data

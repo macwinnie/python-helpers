@@ -89,6 +89,35 @@ class CSV:
         self.rowCheck = True
         return self.rows.pop(index)
 
+    def __len__(self):
+        &#34;&#34;&#34;count rows in CSV
+
+        Returns:
+            int: numbers of rows in CSV
+        &#34;&#34;&#34;
+        return len(self.rows)
+
+    def remove(self, row):
+        &#34;&#34;&#34;remove row from CSV
+
+        Args:
+            row (dict): row object to remove from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        self.rows.remove(row)
+
+    def pop(self, index):
+        &#34;&#34;&#34;pop row from CSV – like from lists
+
+        Args:
+            index (int): index of row to pop
+
+        Returns:
+            dict: row removed / poped from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        return self.rows.pop(index)
+
     def getCSV(self):
         &#34;&#34;&#34;get CSV data
 
@@ -402,6 +431,35 @@ If the data is given JSON like – as a list of dictionaries where each row (dic
         self.csvRows()
         self.rowCheck = True
         return self.rows[index]
+
+    def __len__(self):
+        &#34;&#34;&#34;count rows in CSV
+
+        Returns:
+            int: numbers of rows in CSV
+        &#34;&#34;&#34;
+        return len(self.rows)
+
+    def remove(self, row):
+        &#34;&#34;&#34;remove row from CSV
+
+        Args:
+            row (dict): row object to remove from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        self.rows.remove(row)
+
+    def pop(self, index):
+        &#34;&#34;&#34;pop row from CSV – like from lists
+
+        Args:
+            index (int): index of row to pop
+
+        Returns:
+            dict: row removed / poped from CSV
+        &#34;&#34;&#34;
+        self.rowCheck = True
+        return self.rows.pop(index)
 
     def __len__(self):
         &#34;&#34;&#34;count rows in CSV
