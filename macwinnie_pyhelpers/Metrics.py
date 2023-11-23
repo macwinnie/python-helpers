@@ -93,6 +93,25 @@ class MetricsCollection:
             self.setHelp(helpText)
             self.setType(metricType)
 
+        def __getitem__(self, index):
+            """iterate through instances
+
+            Args:
+                index (int): get instance by index
+
+            Returns:
+                MetricInstance: instance at index
+            """
+            return self.instances[index]
+
+        def __len__(self):
+            """count metric instances
+
+            Returns:
+                int: count of instances in this Metric
+            """
+            return len(self.instances)
+
         def setName(self, name):
             """change name
 

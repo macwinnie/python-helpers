@@ -239,3 +239,18 @@ def test_debug_message_for_fallback_on_no_given_metric_type(caplog):
         f"Defaulting metric type to `gauge` for new created metric `{metric_names[2]}`."
         in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
     )
+
+
+def test_metric_count_in_set():
+    """check if length calculation is working correctly"""
+    mc = prepareMetricsObjectForTest()
+    assert len(mc.metrics[metric_names[2]]) == len(metric_values[2])
+
+
+def test_getting_metrics_instance():
+    """check if getting metrics instance is working correctly"""
+    mc = prepareMetricsObjectForTest()
+    em = MetricsCollection.Metric.MetricInstance(
+        metric_names[2], metric_values[2][1], metric_labels[2][1]
+    )
+    assert mc.metrics[metric_names[2]][1] == em
