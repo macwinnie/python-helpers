@@ -42,13 +42,23 @@ jobs:
           bash wf_run.sh
           cat .github.push.version >> $GITHUB_OUTPUT
 
+      - name: "Import GPG key from secrets"
+        uses: "crazy-max/ghaction-import-gpg@v6"
+        with:
+          gpg_private_key: "${{ secrets.GPG_PRIVATE_KEY }}"
+          passphrase: "${{ secrets.GPG_PASS }}"
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          workdir: "./${{ env.WD_PATH }}"
+
       - name: "Publish Git repository with last built state"
         uses: "stefanzweifel/git-auto-commit-action@v4"
         with:
           commit_message:    "Publish currently built version ${{ steps.build_package.outputs.versiontag }}"
           commit_user_name:  "GitHub Actions"
-          commit_user_email: "dev@macwinnie.me"
+          commit_user_email: "github.actions@macwinnie.me"
           repository:        "./${{ env.WD_PATH }}"
           tagging_message:   "${{ steps.build_package.outputs.versiontag }}"
+          commit_options:    "--no-verify"
 
 ...
