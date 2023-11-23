@@ -1,6 +1,6 @@
 # Python Helpers
 
-This repository is a pyhton PIP module to ease daily coding.
+This repository is a pyhton module to ease daily coding.
 
 ## Versioning
 

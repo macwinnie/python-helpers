@@ -30,29 +30,25 @@ jobs:
         with:
           ref: "master"
           path: "${{ env.WD_PATH }}"
-
-      - uses: psf/black@stable
-        with:
-          options: "--line-length 100 --verbose"
-          src: "${{ env.WD_PATH }}"
+          # fetch-depth: 0
+          fetch-tags: true
 
       - name: "Build documentation and package"
+        id: "build_package"
         run: |
-          # add and enable pyenv
-          curl https://pyenv.run | bash
-          PYENV_ROOT="$HOME/.pyenv"
-          command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-          eval "$(pyenv init -)"
           # run script
           cd ./${{ env.WD_PATH }}
-          bash wf_prep.sh
+          chmod a+x wf_run.sh
+          bash wf_run.sh
+          cat .github.push.version >> $GITHUB_OUTPUT
 
       - name: "Publish Git repository with last built state"
         uses: "stefanzweifel/git-auto-commit-action@v4"
         with:
-          commit_message:    "Publish last built version"
+          commit_message:    "Publish currently built version ${{ steps.build_package.outputs.versiontag }}"
           commit_user_name:  "GitHub Actions"
           commit_user_email: "dev@macwinnie.me"
           repository:        "./${{ env.WD_PATH }}"
+          tagging_message:   "${{ steps.build_package.outputs.versiontag }}"
 
 ...

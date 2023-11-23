@@ -1,0 +1,9 @@
+{% for metric_name, metric_details in metrics.items() -%}
+{% if metric_details.instances | length > 0 -%}
+# HELP {{ metric_name }} {{ metric_details.help }}
+# TYPE {{ metric_name }} {{ metric_details.type }}
+{% for instance in metric_details.instances -%}
+{{ metric_name }}{ {%- if instance.labels | length > 0 %}{%- for label, value in instance.labels.items() %}{{ label }}="{{ value }}"{% if not loop.last %},{% endif %}{% endfor %}{% endif -%} } {{ instance.value }}
+{% endfor %}
+{% endif -%}
+{%- endfor -%}

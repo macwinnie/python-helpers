@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import re
 
 
@@ -7,13 +6,6 @@ class Version:
     """
     Helper to work with [semantic versions](https://semver.org/) – e.g. comparing them.
     """
-
-    prefixes = []
-    major = 0
-    minor = 0
-    patch = 0
-    prefix = None
-    given = None
 
     def __init__(self, versionString, prefix=[], removePrefix=False):
         """
@@ -23,11 +15,19 @@ class Version:
         * If one has multiple options (case sensitive!), `prefix` has to be a list of all options
         * Default is an empty list
         """
+        self.prefixes = []
+        self.major = 0
+        self.minor = 0
+        self.patch = 0
+        self.prefix = None
+        self.given = None
         self.given = versionString
         if type(prefix) == str:
             self.prefixes = [prefix]
-        else:
+        elif type(prefix) == type([]):
             self.prefixes = prefix
+        else:
+            raise Exception("Prefixes need to be either string or list of strings!")
         if len(self.prefixes) > 0:
             prs = sorted(self.prefixes, key=len)
             prs.reverse()
@@ -38,7 +38,13 @@ class Version:
                     versionString = versionString[len(p) :]
                     break
         vs = versionString.split(".")
-        self.major, self.minor, self.patch = map(int, vs)
+        try:
+            self.major, self.minor, self.patch = map(int, vs)
+        except ValueError:
+            vst = type(versionString)
+            raise ValueError(
+                f'Value "{versionString}" (type "{vst}") is not a Version string!'
+            )
 
     def __str__(self):
         """convert current instance to version string"""
@@ -50,17 +56,22 @@ class Version:
 
     def cmpPrepare(self, other):
         """Function to prepare comparison version"""
-        if type(other) != Version:
+        ot = type(other)
+        if ot != Version:
             if type(other) == str:
                 other = Version(other)
             else:
-                raise Exception("Only able to compare Versions!")
+                raise TypeError(f'Only able to compare Versions, "{ot}" given.')
         return other
 
     def __eq__(self, other):
         """Defines comparison method for logical operator `==`"""
         other = self.cmpPrepare(other)
-        return self.major == other.major and self.minor == other.minor and self.patch == other.patch
+        return (
+            self.major == other.major
+            and self.minor == other.minor
+            and self.patch == other.patch
+        )
 
     def __ne__(self, other):
         """Defines comparison method for logical operator `!=`"""
@@ -72,7 +83,8 @@ class Version:
         return (self.major < other.major) or (
             self.major == other.major
             and (
-                self.minor < other.minor or (self.minor == other.minor and self.patch < other.patch)
+                self.minor < other.minor
+                or (self.minor == other.minor and self.patch < other.patch)
             )
         )
 

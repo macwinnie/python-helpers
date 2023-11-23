@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import re
 
 
@@ -8,15 +7,16 @@ class Truth:
     Basic truth check class.
     """
 
-    interpreter = None
-
     def __init__(self, interpretingExample=None):
         """
         Given an example object, which should be able to support interpretion
         of propopsitions, its type will be stored as interpreter. Defaults to
         `None`, could be an `Version` object out of `macwinnie_pyhelpers.Version`
         """
-        self.interpreter = type(interpretingExample)
+        if type(interpretingExample) == type(None):
+            self.interpreter = None
+        else:
+            self.interpreter = type(interpretingExample)
 
     def verify(self, proposition):
         """
@@ -41,7 +41,9 @@ class Truth:
                     return self.interpret(proposition)
                 except:
                     pass
-        raise Exception('No interpretion found for given proposition "{}"!'.format(proposition))
+        raise Exception(
+            'No interpretion found for given proposition "{}"!'.format(proposition)
+        )
 
     def interpret(self, proposition):
         """
@@ -63,6 +65,15 @@ class Truth:
             s = match.start()
             e = match.end()
             splitting.append([s, e])
+
+        if splitting == []:
+            raise Exception(f'No valid truth proposition given by "{proposition}"!')
+
+        # f = open("./test.log", "a")
+        # import json
+        # f.write(json.dumps(splitting) + "\n\n-----\n\n")
+        # f.close()
+
         checks = []
         s3 = 0
         for i, s in enumerate(splitting):
@@ -96,8 +107,6 @@ class Truth:
                 verum = verum and o0 != o1
             elif c[1] == "==":
                 verum = verum and o0 == o1
-            else:
-                raise Exception('"{}" is not interpretable!'.format(proposition))
         return verum
 
 
@@ -114,12 +123,15 @@ class Sentence:
     * `∨` as `or` (not the letter `v`!)
     """
 
-    sentence = None
-    tsentence = None
-    verifier = None
-    atomized = None
-
-    def __init__(self, sentence, interpretingExample=None, verifier=None, pretested=False):
+    def __init__(
+        self,
+        sentence,
+        interpretingExample=None,
+        verifier=None,
+        pretested=False,
+        openingBracketRX=r"\(",
+        closingBracketRX=r"\)",
+    ):
         """
         Given a `sentence`, this classes objects will be used to verify a logical
         sentence.
@@ -135,7 +147,13 @@ class Sentence:
         `pretested` is to be used internally - when all propositions have
         already been replaced by truthy literals.
         """
+        self.verifier = None
+        self.atomized = None
+        self.tsentence = None
+
         self.sentence = sentence
+        self.setBrackets(openingBracketRX, closingBracketRX)
+
         if not pretested:
             if verifier == None:
                 if type(interpretingExample) == type(None):
@@ -148,6 +166,12 @@ class Sentence:
         else:
             self.tsentence = sentence
         self.atomizeBraces()
+
+    def __bool__(self):
+        return self.truth()
+
+    def __str__(self, literals=True):
+        return self.getLiteral(self.truth())
 
     def getLiteral(self, booleanValue):
         """Somehow static function to get a literal for boolean values"""
@@ -177,7 +201,9 @@ class Sentence:
             x = re.search(rx, self.atomized)
             if x != None:
                 literal = x.group(1)
-                z = not Sentence(literal, verifier=self.verifier, pretested=True).truth()
+                z = not Sentence(
+                    literal, verifier=self.verifier, pretested=True
+                ).truth()
                 self.atomized = self.atomized.replace(x.group(0), self.getLiteral(z))
             else:
                 # do everything to do with ∧, as it's the next after ¬
@@ -186,8 +212,12 @@ class Sentence:
                 if x != None:
                     literalA = x.group(1)
                     literalB = x.group(2)
-                    boolA = Sentence(literalA, verifier=self.verifier, pretested=True).truth()
-                    boolB = Sentence(literalB, verifier=self.verifier, pretested=True).truth()
+                    boolA = Sentence(
+                        literalA, verifier=self.verifier, pretested=True
+                    ).truth()
+                    boolB = Sentence(
+                        literalB, verifier=self.verifier, pretested=True
+                    ).truth()
                     self.atomized = self.atomized.replace(
                         x.group(0), self.getLiteral(boolA and boolB)
                     )
@@ -198,8 +228,12 @@ class Sentence:
                     if x != None:
                         literalA = x.group(1)
                         literalB = x.group(2)
-                        boolA = Sentence(literalA, verifier=self.verifier, pretested=True).truth()
-                        boolB = Sentence(literalB, verifier=self.verifier, pretested=True).truth()
+                        boolA = Sentence(
+                            literalA, verifier=self.verifier, pretested=True
+                        ).truth()
+                        boolB = Sentence(
+                            literalB, verifier=self.verifier, pretested=True
+                        ).truth()
                         self.atomized = self.atomized.replace(
                             x.group(0), self.getLiteral(boolA or boolB)
                         )
@@ -207,10 +241,6 @@ class Sentence:
             return True
         elif self.atomized == "⊥":
             return False
-        else:
-            raise Exception(
-                '"{}" should be an atomic sentence – but it is not!'.format(self.sentence)
-            )
 
     def isAtomic(self):
         """
@@ -221,10 +251,14 @@ class Sentence:
         else:
             return False
 
-    def getBraceIdx(self, openingCharRX=r"\(", closingCharRX=r"\)"):
+    def setBrackets(self, opening=r"\(", closing=r"\)"):
+        self.openingCharRX = opening
+        self.closingCharRX = closing
+
+    def getBraceIdx(self):
         """Analyze sentence for brackets and return their type and index"""
-        oRx = re.compile(openingCharRX)
-        cRx = re.compile(closingCharRX)
+        oRx = re.compile(self.openingCharRX)
+        cRx = re.compile(self.closingCharRX)
 
         braces = {}
         for m in oRx.finditer(self.atomized):
@@ -272,7 +306,9 @@ class Sentence:
             self.atomized = self.atomized.replace(
                 toBeReplaced,
                 self.getLiteral(
-                    Sentence(subSentence, verifier=self.verifier, pretested=True).truth()
+                    Sentence(
+                        subSentence, verifier=self.verifier, pretested=True
+                    ).truth()
                 ),
             )
             br, idx = self.getBraceIdx()
