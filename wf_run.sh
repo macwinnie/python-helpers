@@ -49,7 +49,7 @@ rm -rf "${docPath}" || true
 mkdir -p "${docPath}"
 
 # write out documentation for all python classes in src folder
-pdoc macwinnie_pyhelpers --output-dir "${docPath}"
+pdoc macwinnie_pyhelpers --docformat google --output-dir "${docPath}"
 
 #  update index page of documentation by current date and author information
 chmod a+x wf_adjust_pdoc.py
