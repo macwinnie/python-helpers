@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import copy
 import logging
+import pytest
 
 from macwinnie_pyhelpers.Metrics import MetricsCollection
 
@@ -175,6 +176,37 @@ def test_metric_same_label_replace_value(caplog):
         f"Update value of a `{metric_names[0]}` metric from `{metric_values[0][1]}` to `{metric_values[0][3]}`."
         in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
     )
+
+@pytest.mark.parametrize(
+    "metricNameSuffix",
+    (
+        None,
+        "_total",
+    ),
+)
+def test_metric_counter_name_warning(caplog, metricNameSuffix):
+    """ensure the replacement of the value if labels are same"""
+    names = copy.deepcopy(metric_names)
+    workIdx = metric_type.index('counter')
+    if metricNameSuffix != None:
+        names[workIdx] += metricNameSuffix
+    with caplog.at_level(level="DEBUG"):
+        mc = prepareMetricsObjectForTest(overrideNames=names)
+
+    logMsg = f'For a "counter" type metric, the name should have "_total" suffix, but "{names[workIdx]}" does not.'
+    logWarnings = [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+
+    if metricNameSuffix != None:
+        assert (
+            logMsg
+            not in logWarnings
+        )
+    else:
+        assert (
+            logMsg
+            in logWarnings
+        )
+
 
 
 def test_name_change():

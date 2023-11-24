@@ -99,9 +99,9 @@ class MetricsCollection:
             """
             self.instances = []
             self.comments = []
+            self.setType(metricType)
             self.setName(name)
             self.setHelp(helpText)
-            self.setType(metricType)
 
         def __getitem__(self, index):
             """iterate through instances
@@ -128,9 +128,14 @@ class MetricsCollection:
             Args:
                 name (str): name to change the metrics to
             """
+            name = name.strip()
             if not re.match(re.compile("^[a-zA-Z_:][a-zA-Z0-9_:]*$"), name):
                 logger.error(
                     f'"{name}" does not match the Prometheus specifications. Please adjust!'
+                )
+            if self.type == 'counter' and not name.endswith('_total'):
+                logger.warning(
+                    f'For a "counter" type metric, the name should have "_total" suffix, but "{name}" does not.'
                 )
             self.name = name
             for i in self.instances:
@@ -142,6 +147,8 @@ class MetricsCollection:
             Args:
                 helpText (str): help information about the metrics
             """
+            if type(helpText) == str:
+                helpText = helpText.strip()
             self.helpText = helpText
 
         def setType(self, metricType):
@@ -150,6 +157,8 @@ class MetricsCollection:
             Args:
                 metricType (str): type to change metric to
             """
+            if type(metricType) == str:
+                metricType = metricType.strip()
             if metricType not in self.validMetricTypes:
                 logger.error(
                     f'"{metricType}" is not a valid type, which are defined by {self.validMetricTypes}'
