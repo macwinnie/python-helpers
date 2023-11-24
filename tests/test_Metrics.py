@@ -219,6 +219,13 @@ def test_warning_for_new_metric_without_help(caplog):
         in [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
     )
 
+    expected_string = metrics_string.splitlines()
+    searchReplace = f"# HELP {metric_names[check_idx]}"
+    for i, s in enumerate(expected_string):
+        if s.startswith(searchReplace):
+            expected_string[i] = searchReplace
+    assert str(mc) == "\n".join(expected_string) + "\n"
+
 
 def test_logs_when_changing_type_and_help_by_adding_new_metrics(caplog):
     mc = prepareMetricsObjectForTest()

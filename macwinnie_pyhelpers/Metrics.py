@@ -216,7 +216,7 @@ class MetricsCollection:
             return {
                 self.name: {
                     "type": self.type,
-                    "help": self.helpText,
+                    "help": self.helpText or "",
                     "instances": self.instances,
                     "comments": self.comments,
                 }
