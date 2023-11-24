@@ -89,6 +89,7 @@ class MetricsCollection:
                 metricType (str): type of metric to be used (default: `gauge`)
             """
             self.instances = []
+            self.comments = []
             self.setName(name)
             self.setHelp(helpText)
             self.setType(metricType)
@@ -138,6 +139,34 @@ class MetricsCollection:
             """
             self.type = metricType
 
+        def addComment(self, comment):
+            """add additional comments to metrics
+
+            Args:
+                comment (str): comment to add
+            """
+            if comment not in self.comments:
+                self.comments.append(comment)
+
+        def getComments(self):
+            """return comments
+
+            Returns:
+                list: list of comments
+            """
+            return self.comments
+
+        def popComment(self, commentIndex):
+            """pop a comment by ID in list
+
+            Args:
+                commentIndex (int): index to pop
+
+            Returns:
+                str: popped comment
+            """
+            return self.comments.pop(commentIndex)
+
         def addMetric(self, value, labels={}):
             """add a metric instance
 
@@ -172,6 +201,7 @@ class MetricsCollection:
                     "type": self.type,
                     "help": self.helpText,
                     "instances": self.instances,
+                    "comments": self.comments,
                 }
             }
 

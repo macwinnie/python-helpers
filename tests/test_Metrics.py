@@ -255,3 +255,33 @@ def test_getting_metrics_instance():
         metric_names[2], metric_values[2][1], metric_labels[2][1]
     )
     assert mc.metrics[metric_names[2]][1] == em
+
+
+def test_metric_comments():
+    """test additional comments in metrics"""
+    mc = prepareMetricsObjectForTest()
+    test_comments = [
+        """This is a multiline
+comment ...""",
+        "This is a comment with a backslash \\ in it",
+    ]
+    expected_lines = [
+        "# {}".format(c.replace("\\", "\\\\").replace("\n", "\\n"))
+        for c in test_comments
+    ]
+    for comment in test_comments:
+        mc.metrics[metric_names[0]].addComment(comment)
+    expected_string = metrics_string.splitlines()
+    expected_string[2:2] = expected_lines
+    assert str(mc) == "\n".join(expected_string) + "\n"
+    assert len(mc.metrics[metric_names[0]].getComments()) == len(test_comments)
+
+    assert (
+        mc.metrics[metric_names[0]].popComment(len(test_comments) - 1)
+        == test_comments[len(test_comments) - 1]
+    )
+    assert len(mc.metrics[metric_names[0]].getComments()) == len(test_comments) - 1
+
+    expected_string = metrics_string.splitlines()
+    expected_string[2:2] = expected_lines[:-1]
+    assert str(mc) == "\n".join(expected_string) + "\n"
