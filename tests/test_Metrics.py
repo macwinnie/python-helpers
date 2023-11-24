@@ -91,7 +91,13 @@ example_job_3_result_unit{label1="label value 9",label2="label value 10",label3=
 """
 
 
-def prepareMetricsObjectForTest(values=None, overrideHelp=None):
+def prepareMetricsObjectForTest(
+    values=None,
+    overrideHelp=None,
+    overrideNames=None,
+    overrideLabels=None,
+    overrideTypes=None,
+):
     """helper to prepare Metrics objects
 
     Returns:
@@ -102,13 +108,19 @@ def prepareMetricsObjectForTest(values=None, overrideHelp=None):
         values = metric_values
     if overrideHelp == None:
         overrideHelp = metric_help
-    for i, name in enumerate(metric_names):
-        mc.addMetric(name, helpText=overrideHelp[i], metricType=metric_type[i])
+    if overrideNames == None:
+        overrideNames = metric_names
+    if overrideLabels == None:
+        overrideLabels = metric_labels
+    if overrideTypes == None:
+        overrideTypes = metric_type
+    for i, name in enumerate(overrideNames):
+        mc.addMetric(name, helpText=overrideHelp[i], metricType=overrideTypes[i])
         for j, value in enumerate(values[i]):
-            if j > len(metric_labels[i]) - 1:
+            if j > len(overrideLabels[i]) - 1:
                 l = {}
             else:
-                l = metric_labels[i][j]
+                l = overrideLabels[i][j]
             mc.addMetric(name, value=value, labels=l)
     return mc
 
@@ -242,6 +254,32 @@ def test_debug_message_for_fallback_on_no_given_metric_type(caplog):
     )
 
 
+def test_error_on_metric_and_label_name_conflict(caplog):
+    """check debug notice when creating a metric without type so fallback to `gauge` is used"""
+    names = copy.deepcopy(metric_names)
+    names[0] = f"={names[0]}"  # `=` is a non-allowed character for metric names
+
+    labels = copy.deepcopy(metric_labels)
+    wrong_label = list(labels[0][0].keys())[0]
+    label_value = labels[0][0][wrong_label]
+    del labels[0][0][wrong_label]
+    wrong_label = f"={wrong_label}"
+    labels[0][0][wrong_label] = label_value
+
+    with caplog.at_level(level="DEBUG"):
+        mc = prepareMetricsObjectForTest(overrideNames=names, overrideLabels=labels)
+
+    errorLogs = [rec.message for rec in caplog.records if rec.levelno == logging.ERROR]
+    assert (
+        f'"{names[0]}" does not match the Prometheus specifications. Please adjust!'
+        in errorLogs
+    )
+    assert (
+        f'Label with name "{wrong_label}" does not match the Prometheus specifications. Please adjust!'
+        in errorLogs
+    )
+
+
 def test_metric_count_in_set():
     """check if length calculation is working correctly"""
     mc = prepareMetricsObjectForTest()
@@ -285,3 +323,16 @@ comment ...""",
     expected_string = metrics_string.splitlines()
     expected_string[2:2] = expected_lines[:-1]
     assert str(mc) == "\n".join(expected_string) + "\n"
+
+
+def test_nonsense_metrics_type(caplog):
+    """test fallback type on nonsense metric types"""
+    types = copy.deepcopy(metric_type)
+    types[2] = "nonsense"
+    with caplog.at_level(level="DEBUG"):
+        mc = prepareMetricsObjectForTest(overrideTypes=types)
+
+    assert (
+        f'"{types[2]}" is not a valid type, which are defined by {MetricsCollection.Metric.validMetricTypes}'
+        in [rec.message for rec in caplog.records if rec.levelno == logging.ERROR]
+    )

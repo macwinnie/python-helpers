@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import os
+import re
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -20,6 +21,9 @@ class MetricsCollection:
         Set of metrics of the same name with multiple instances, differenciated by the set labels
         """
 
+        validMetricTypes = ["counter", "gauge", "histogram", "summary", "untyped"]
+        dafaultType = "gauge"
+
         class MetricInstance:
             """single metric
 
@@ -35,6 +39,11 @@ class MetricsCollection:
                 """
                 self.setName(name)
                 self.setValue(value)
+                for k in labels:
+                    if not re.match(re.compile("^[a-zA-Z_][a-zA-Z0-9_]*$"), k):
+                        logger.error(
+                            f'Label with name "{k}" does not match the Prometheus specifications. Please adjust!'
+                        )
                 self.labels = labels
 
             def __eq__(self, other):
@@ -80,7 +89,7 @@ class MetricsCollection:
                 else:
                     return False
 
-        def __init__(self, name, helpText=None, metricType="gauge"):
+        def __init__(self, name, helpText=None, metricType=dafaultType):
             """initialize Metric by name
 
             Args:
@@ -119,6 +128,10 @@ class MetricsCollection:
             Args:
                 name (str): name to change the metrics to
             """
+            if not re.match(re.compile("^[a-zA-Z_:][a-zA-Z0-9_:]*$"), name):
+                logger.error(
+                    f'"{name}" does not match the Prometheus specifications. Please adjust!'
+                )
             self.name = name
             for i in self.instances:
                 i.setName(name)
@@ -137,6 +150,10 @@ class MetricsCollection:
             Args:
                 metricType (str): type to change metric to
             """
+            if metricType not in self.validMetricTypes:
+                logger.error(
+                    f'"{metricType}" is not a valid type, which are defined by {self.validMetricTypes}'
+                )
             self.type = metricType
 
         def addComment(self, comment):
@@ -215,7 +232,7 @@ class MetricsCollection:
         """add a (new) metric instance
 
         Args:
-            metricName (str): name of metric to be added
+            metricName (str): name of metric to be added (see https://prometheus.io/docs/concepts/data_model/ for data model)
             value (mixed): value of actual metric set (default: `None`)
             labels (dict): labels to be set for actual metric set – they identify a metric! (default: `{}`)
             helpText (str): help information for the metric collection of name metricName (default: `None`)
@@ -224,7 +241,7 @@ class MetricsCollection:
         """
         if not metricName in self.metrics:
             if metricType == None:
-                metricType = "gauge"
+                metricType = self.Metric.dafaultType
                 logger.debug(
                     f"Defaulting metric type to `{metricType}` for new created metric `{metricName}`."
                 )
@@ -266,7 +283,7 @@ class MetricsCollection:
         """
         self.metrics[metricName].setHelp(helpText)
 
-    def setType(self, metricName, metricType="gauge"):
+    def setType(self, metricName, metricType=Metric.dafaultType):
         """change metric type
 
         Args:
