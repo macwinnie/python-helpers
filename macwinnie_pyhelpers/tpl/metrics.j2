@@ -8,7 +8,7 @@
 {% endfor -%}
 {% endif %}
 {%- for instance in metric_details.instances -%}
-{{ metric_name }}{ {%- if instance.labels | length > 0 %}{%- for label, value in instance.labels.items() %}{{ label }}="{{ value | replace("\\", "\\\\" ) | replace("\n", "\\n") }}"{% if not loop.last %},{% endif %}{% endfor %}{% endif -%} } {{ instance.value }}
+{{ metric_name }}{%- if instance.labels | length > 0 %} {{- "{" -}} {% for label, value in instance.labels.items() %}{{ label }}="{{ value | replace("\\", "\\\\" ) | replace("\n", "\\n") }}"{% if not loop.last %},{% endif %}{% endfor %} {{- "}" -}} {% endif %} {{ instance.value }}
 {% endfor %}
 {% endif -%}
 {%- endfor -%}
