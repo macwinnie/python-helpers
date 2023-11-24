@@ -11,9 +11,10 @@ metric_names = [
 ]
 
 metric_help = [
-    "example job result in “unit” with some representations",
+    "example job result in “unit” with some representations and an escaped backslash \\",
     "example job result in “unit” with no representations",
-    "another example job result in “unit” with representations",
+    """another example job result in “unit” with representations
+with two lines of help information""",
 ]
 
 metric_type = [
@@ -76,13 +77,13 @@ metric_labels = [
     ],
 ]
 
-metrics_string = """# HELP example_job_1_result_unit example job result in “unit” with some representations
+metrics_string = """# HELP example_job_1_result_unit example job result in “unit” with some representations and an escaped backslash \\\\
 # TYPE example_job_1_result_unit counter
 example_job_1_result_unit{label1="label value 1",label2="label value 2",label3="label value 3",label4="label value 4"} 1
 example_job_1_result_unit{} 19
 example_job_1_result_unit{label1="label value 9",label2="label value 10",label3="label value 11",label5="label value 12"} 11
 
-# HELP example_job_3_result_unit another example job result in “unit” with representations
+# HELP example_job_3_result_unit another example job result in “unit” with representations\\nwith two lines of help information
 # TYPE example_job_3_result_unit gauge
 example_job_3_result_unit{label1="label value 1",label2="label value 2",label3="label value 3",label4="label value 4"} 2.0
 example_job_3_result_unit{label1="label value 5",label2="label value 6",label3="label value 7",label4="label value 8"} 2.1
