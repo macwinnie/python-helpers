@@ -22,7 +22,7 @@ with two lines of help information""",
 metric_type = [
     "counter",
     "histogram",
-    None,  # gauge should be default, so just let's assume `None` here
+    "gauge",
 ]
 
 metric_values = [
@@ -248,8 +248,8 @@ def test_warning_for_new_metric_without_help(caplog):
         mc = prepareMetricsObjectForTest(overrideHelp=h)
 
     assert (
-        f"No help information passed for new metric `{metric_names[check_idx]}`!"
-        in [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+        f"No HELP information passed for new metric “{metric_names[check_idx]}”!"
+        in [rec.message for rec in caplog.records if rec.levelno == logging.INFO]
     )
 
     expected_string = metrics_string.splitlines()
@@ -286,12 +286,14 @@ def test_logs_when_changing_type_and_help_by_adding_new_metrics(caplog):
 def test_debug_message_for_fallback_on_no_given_metric_type(caplog):
     """check debug notice when creating a metric without type so fallback to `gauge` is used"""
     with caplog.at_level(level="DEBUG"):
-        mc = prepareMetricsObjectForTest()
+        test_idx = 2
+        types = copy.deepcopy(metric_type)
+        types[test_idx] = None
+        mc = prepareMetricsObjectForTest(overrideTypes=types)
 
-    assert (
-        f"Defaulting metric type to `gauge` for new created metric `{metric_names[2]}`."
-        in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
-    )
+    assert f"No TYPE defined for new created metric “{metric_names[test_idx]}”." in [
+        rec.message for rec in caplog.records if rec.levelno == logging.INFO
+    ]
 
 
 def test_error_on_metric_and_label_name_conflict(caplog):
@@ -525,7 +527,7 @@ def test_merge_metrics(newExisting, caplog):
     oldIdx = 0
     newIdx = 2
     oldName = metric_names[oldIdx]
-    newType = metric_type[newIdx] or "gauge"
+    newType = metric_type[newIdx]
     newName = "totally_new_metric_name"
     if newExisting:
         newName = metric_names[newIdx]
@@ -576,7 +578,7 @@ def tests_rename_metrics(newExisting, force, caplog):
     newIdx = 1
     oldName = metric_names[oldIdx]
     oldHelp = metric_help[oldIdx]
-    oldType = metric_type[oldIdx] or "gauge"
+    oldType = metric_type[oldIdx]
     newName = "totally_new_metric_name"
     if newExisting:
         newName = metric_names[newIdx]
@@ -655,10 +657,9 @@ test_metric 1
         mc.load(loadString)
 
     assert len(mc.metrics["test_metric"].instances) == 1
-    assert (
-        f"Defaulting metric type to `{MetricsCollection.Metric.dafaultType}` for new created metric `test_metric`."
-        in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
-    )
+    assert f"No TYPE defined for new created metric “test_metric”." in [
+        rec.message for rec in caplog.records if rec.levelno == logging.INFO
+    ]
 
 
 def test_load_without_type_and_help(caplog):
@@ -667,12 +668,11 @@ def test_load_without_type_and_help(caplog):
     with caplog.at_level(level="DEBUG"):
         mc.load(loadString)
 
+    infologs = [rec.message for rec in caplog.records if rec.levelno == logging.INFO]
+
     assert len(mc.metrics["test_metric"].instances) == 1
     assert (
         f"It seems there is a metric “test_metric” without any TYPE or HELP defined in imported metrics."
-        in [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+        in infologs
     )
-    assert (
-        f"Defaulting metric type to `{MetricsCollection.Metric.dafaultType}` for new created metric `test_metric`."
-        in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
-    )
+    assert f"No TYPE defined for new created metric “test_metric”." in infologs

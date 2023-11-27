@@ -23,7 +23,6 @@ class MetricsCollection:
         """
 
         validMetricTypes = ["counter", "gauge", "histogram", "summary", "untyped"]
-        dafaultType = "gauge"
 
         class MetricInstance:
             """single metric
@@ -94,7 +93,7 @@ class MetricsCollection:
 
         nameRegEx = "[a-zA-Z_:][a-zA-Z0-9_:]*"
 
-        def __init__(self, name, helpText=None, metricType=dafaultType):
+        def __init__(self, name, helpText=None, metricType=None):
             """initialize Metric by name
 
             Args:
@@ -255,13 +254,10 @@ class MetricsCollection:
         """
         if not metricName in self.metrics:
             if metricType == None:
-                metricType = self.Metric.dafaultType
-                logger.debug(
-                    f"Defaulting metric type to `{metricType}` for new created metric `{metricName}`."
-                )
+                logger.info(f"No TYPE defined for new created metric “{metricName}”.")
             if helpText == None:
-                logger.warning(
-                    f"No help information passed for new metric `{metricName}`!"
+                logger.info(
+                    f"No HELP information passed for new metric “{metricName}”!"
                 )
             self.metrics[metricName] = self.Metric(
                 name=metricName, helpText=helpText, metricType=metricType
@@ -369,7 +365,7 @@ class MetricsCollection:
         """
         self.metrics[metricName].setHelp(helpText)
 
-    def setType(self, metricName, metricType=Metric.dafaultType):
+    def setType(self, metricName, metricType=None):
         """change metric type
 
         Args:
@@ -590,7 +586,7 @@ class MetricsCollection:
                 # add actual metric
                 if groups[0] not in self._createMetrics:
                     self._createMetrics[groups[0]] = {}
-                    logger.warning(
+                    logger.info(
                         f"It seems there is a metric “{groups[0]}” without any TYPE or HELP defined in imported metrics."
                     )
 
