@@ -141,6 +141,10 @@ class MetricsCollection:
                 logger.warning(
                     f"For a “counter” type metric, the name should have “_total” suffix, but “{name}” does not."
                 )
+            if self.type not in ("histogram", "summary") and name.endswith("_count"):
+                logger.warning(
+                    f"Non-histogram and non-summary metrics like “{name}” should not end with “_count” suffix."
+                )
             self.name = name
             for i in self.instances:
                 i.setName(name)

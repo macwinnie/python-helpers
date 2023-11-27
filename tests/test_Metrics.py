@@ -183,33 +183,6 @@ def test_metric_same_label_replace_value(caplog):
     )
 
 
-@pytest.mark.parametrize(
-    "metricNameSuffix",
-    (
-        None,
-        "_total",
-    ),
-)
-def test_metric_counter_name_warning(caplog, metricNameSuffix):
-    """ensure the replacement of the value if labels are same"""
-    names = copy.deepcopy(metric_names)
-    workIdx = metric_type.index("counter")
-    if metricNameSuffix != None:
-        names[workIdx] += metricNameSuffix
-    with caplog.at_level(level="DEBUG"):
-        mc = prepareMetricsObjectForTest(overrideNames=names)
-
-    logMsg = f"For a “counter” type metric, the name should have “_total” suffix, but “{names[workIdx]}” does not."
-    logWarnings = [
-        rec.message for rec in caplog.records if rec.levelno == logging.WARNING
-    ]
-
-    if metricNameSuffix != None:
-        assert logMsg not in logWarnings
-    else:
-        assert logMsg in logWarnings
-
-
 def test_name_change():
     """ensure a name change is done down to all edges"""
     mc = prepareMetricsObjectForTest()
@@ -703,3 +676,64 @@ def test_load_without_type_and_help(caplog):
     )
     assert f"No TYPE defined for new created metric “test_metric”." in infologs
     assert str(mc).strip() == loadString
+
+
+@pytest.mark.parametrize(
+    "matchSuffix",
+    (
+        True,
+        False,
+    ),
+)
+@pytest.mark.parametrize(
+    (
+        "metricType",
+        "metricNameSuffix",
+        "expected",
+    ),
+    (
+        (
+            "counter",
+            "_total",
+            True,
+        ),
+        (
+            "counter",
+            "_count",
+            False,
+        ),
+        (
+            "gauge",
+            "_count",
+            False,
+        ),
+        (
+            "untyped",
+            "_count",
+            False,
+        ),
+    ),
+)
+def test_suffix_warnings(matchSuffix, metricType, metricNameSuffix, expected, caplog):
+    """ensure the replacement of the value if labels are same"""
+    name = "test_metric_name"
+    if matchSuffix:
+        name += metricNameSuffix
+    warnings = {
+        "_total": f"For a “counter” type metric, the name should have “_total” suffix, but “{name}” does not.",
+        "_count": f"Non-histogram and non-summary metrics like “{name}” should not end with “_count” suffix.",
+    }
+
+    with caplog.at_level(level="DEBUG"):
+        mc = MetricsCollection()
+        mc.addMetric(name, metricType=metricType)
+
+    logMsg = warnings[metricNameSuffix]
+    logWarnings = [
+        rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+    ]
+
+    if (not expected and matchSuffix) or (not matchSuffix and expected):
+        assert logMsg in logWarnings
+    else:
+        assert logMsg not in logWarnings
