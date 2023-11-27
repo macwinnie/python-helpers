@@ -1,7 +1,7 @@
 {% for metric_name, metric_details in metrics.items() -%}
 {% if metric_details.instances | length > 0 -%}
-# HELP {{ metric_name }}{% if metric_details.help != "" %} {{ metric_details.help | replace("\\", "\\\\" ) | replace("\n", "\\n") }}{% endif %}
-# TYPE {{ metric_name }} {{ metric_details.type }}
+{% if metric_details.help != "" %}# HELP {{ metric_name }} {{ metric_details.help | replace("\\", "\\\\" ) | replace("\n", "\\n") }}{%- endif %}{% if metric_details.type != "" %}
+# TYPE {{ metric_name }} {{ metric_details.type }}{%- endif %}
 {% if metric_details.comments | length > 0 %}
 {%- for comment in metric_details.comments -%}
 # {{ comment | replace("\\", "\\\\" ) | replace("\n", "\\n") }}

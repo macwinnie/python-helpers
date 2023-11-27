@@ -228,7 +228,7 @@ class MetricsCollection:
             """
             return {
                 self.name: {
-                    "type": self.type,
+                    "type": self.type or "",
                     "help": self.helpText or "",
                     "instances": self.instances,
                     "comments": self.comments,
@@ -257,7 +257,7 @@ class MetricsCollection:
                 logger.info(f"No TYPE defined for new created metric “{metricName}”.")
             if helpText == None:
                 logger.info(
-                    f"No HELP information passed for new metric “{metricName}”!"
+                    f"No HELP information passed for new metric “{metricName}”."
                 )
             self.metrics[metricName] = self.Metric(
                 name=metricName, helpText=helpText, metricType=metricType

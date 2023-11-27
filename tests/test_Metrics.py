@@ -248,7 +248,7 @@ def test_warning_for_new_metric_without_help(caplog):
         mc = prepareMetricsObjectForTest(overrideHelp=h)
 
     assert (
-        f"No HELP information passed for new metric “{metric_names[check_idx]}”!"
+        f"No HELP information passed for new metric “{metric_names[check_idx]}”."
         in [rec.message for rec in caplog.records if rec.levelno == logging.INFO]
     )
 
@@ -256,7 +256,7 @@ def test_warning_for_new_metric_without_help(caplog):
     searchReplace = f"# HELP {metric_names[check_idx]}"
     for i, s in enumerate(expected_string):
         if s.startswith(searchReplace):
-            expected_string[i] = searchReplace
+            expected_string.pop(i)
     assert str(mc) == "\n".join(expected_string) + "\n"
 
 
@@ -613,8 +613,8 @@ def tests_rename_metrics(newExisting, force, caplog):
 
 
 def test_load_duplicate_type_def(caplog):
-    loadString = """# TYPE test_metric gauge
-# HELP test_metric Testing duplicate metric type
+    loadString = """# HELP test_metric Testing duplicate metric type
+# TYPE test_metric gauge
 # TYPE test_metric counter
 test_metric 1
 """
@@ -622,23 +622,32 @@ test_metric 1
     with caplog.at_level(level="DEBUG"):
         mc.load(loadString)
 
+    expected = loadString.splitlines()
+    expected.pop(2)
+    expected = "\n".join(expected)
+
     assert len(mc.metrics["test_metric"].instances) == 1
 
     assert """Type for metric with name test_metric defined multiple times.
 Only first occurence (“gauge”) in given metric definition will be applied.""" in [
         rec.message for rec in caplog.records if rec.levelno == logging.ERROR
     ]
+    assert str(mc).strip() == expected.strip()
 
 
 def test_load_duplicate_help_def(caplog):
-    loadString = """# TYPE test_metric gauge
-# HELP test_metric Testing duplicate metric help 1
+    loadString = """# HELP test_metric Testing duplicate metric help 1
 # HELP test_metric Testing duplicate metric help 2
+# TYPE test_metric gauge
 test_metric 1
 """
     mc = MetricsCollection()
     with caplog.at_level(level="DEBUG"):
         mc.load(loadString)
+
+    expected = loadString.splitlines()
+    expected.pop(1)
+    expected = "\n".join(expected)
 
     assert len(mc.metrics["test_metric"].instances) == 1
 
@@ -646,6 +655,7 @@ test_metric 1
 Only first occurence (“Testing duplicate metric help 1”) in given metric definition will be applied.""" in [
         rec.message for rec in caplog.records if rec.levelno == logging.ERROR
     ]
+    assert str(mc).strip() == expected.strip()
 
 
 def test_load_without_type(caplog):
@@ -660,6 +670,22 @@ test_metric 1
     assert f"No TYPE defined for new created metric “test_metric”." in [
         rec.message for rec in caplog.records if rec.levelno == logging.INFO
     ]
+    assert str(mc).strip() == loadString.strip()
+
+
+def test_load_without_help(caplog):
+    loadString = """# TYPE test_metric gauge
+test_metric 1
+"""
+    mc = MetricsCollection()
+    with caplog.at_level(level="DEBUG"):
+        mc.load(loadString)
+
+    assert len(mc.metrics["test_metric"].instances) == 1
+    assert f"No HELP information passed for new metric “test_metric”." in [
+        rec.message for rec in caplog.records if rec.levelno == logging.INFO
+    ]
+    assert str(mc).strip() == loadString.strip()
 
 
 def test_load_without_type_and_help(caplog):
@@ -676,3 +702,4 @@ def test_load_without_type_and_help(caplog):
         in infologs
     )
     assert f"No TYPE defined for new created metric “test_metric”." in infologs
+    assert str(mc).strip() == loadString
