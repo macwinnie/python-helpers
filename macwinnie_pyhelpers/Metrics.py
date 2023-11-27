@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import copy
 import logging
 import os
 import re
@@ -30,6 +31,8 @@ class MetricsCollection:
             This is a single representation of one metric.
             """
 
+            labelRegEx = "[a-zA-Z_][a-zA-Z0-9_]*"
+
             def __init__(self, name, value, labels={}):
                 """initialize the metric instance
 
@@ -40,9 +43,9 @@ class MetricsCollection:
                 self.setName(name)
                 self.setValue(value)
                 for k in labels:
-                    if not re.match(re.compile("^[a-zA-Z_][a-zA-Z0-9_]*$"), k):
+                    if not re.match(re.compile(f"^{self.labelRegEx}$"), k):
                         logger.error(
-                            f'Label with name "{k}" does not match the Prometheus specifications. Please adjust!'
+                            f"Label with name “{k}” does not match the Prometheus specifications. Please adjust!"
                         )
                 self.labels = labels
 
@@ -89,6 +92,8 @@ class MetricsCollection:
                 else:
                     return False
 
+        nameRegEx = "[a-zA-Z_:][a-zA-Z0-9_:]*"
+
         def __init__(self, name, helpText=None, metricType=dafaultType):
             """initialize Metric by name
 
@@ -129,13 +134,13 @@ class MetricsCollection:
                 name (str): name to change the metrics to
             """
             name = name.strip()
-            if not re.match(re.compile("^[a-zA-Z_:][a-zA-Z0-9_:]*$"), name):
+            if not re.match(re.compile(f"^{self.nameRegEx}$"), name):
                 logger.error(
-                    f'"{name}" does not match the Prometheus specifications. Please adjust!'
+                    f"“{name}” does not match the Prometheus specifications. Please adjust!"
                 )
-            if self.type == 'counter' and not name.endswith('_total'):
+            if self.type == "counter" and not name.endswith("_total"):
                 logger.warning(
-                    f'For a "counter" type metric, the name should have "_total" suffix, but "{name}" does not.'
+                    f"For a “counter” type metric, the name should have “_total” suffix, but “{name}” does not."
                 )
             self.name = name
             for i in self.instances:
@@ -161,7 +166,7 @@ class MetricsCollection:
                 metricType = metricType.strip()
             if metricType not in self.validMetricTypes:
                 logger.error(
-                    f'"{metricType}" is not a valid type, which are defined by {self.validMetricTypes}'
+                    f"“{metricType}” is not a valid type, which are defined by {self.validMetricTypes}"
                 )
             self.type = metricType
 
@@ -261,7 +266,7 @@ class MetricsCollection:
             self.metrics[metricName] = self.Metric(
                 name=metricName, helpText=helpText, metricType=metricType
             )
-            logger.debug(f"Added new metric `{metricName}`")
+            logger.debug(f"Added new metric “{metricName}”")
         else:
             if helpText != None:
                 self.setHelp(metricName, helpText)
@@ -271,17 +276,89 @@ class MetricsCollection:
                 logger.warning(f"Changed type for metric `{metricName}`.")
         if value != None:
             self.metrics[metricName].addMetric(value, labels)
+        else:
+            logger.debug(
+                f"Not adding metric instance for “{metricName}” due to missing value!"
+            )
 
-    def renameMetrics(self, old_name, new_name):
-        """rename a bunch of metrics
+    def addComment(self, metricName, comment):
+        """add a comment
 
         Args:
-            old_name (str): old name to be renamed
-            new_name (str): new name to be used
+            metricName (string): [description]
+            comment (string): comment to add
         """
-        self.metrics[old_name].setName(new_name)
-        self.metrics[new_name] = self.metrics[old_name]
-        self.metrics.pop(old_name)
+        self.metrics[metricName].addComment(comment)
+
+    def renameMetrics(self, oldName, newName, force=False):
+        """rename metrics
+
+        Args:
+            oldName (str): old name to be renamed
+            newName (str): new name to be used
+            force (bool): [description] (default: `False`)
+
+        Returns:
+            bool: was the rename successful?
+        """
+        if newName in self.metrics:
+            log = f"Metric “{newName}” already exists."
+            if force:
+                logger.info(f"{log} Doing a merge.")
+                oldType = self.metrics[oldName].type
+                oldHelp = self.metrics[oldName].helpText
+                self.mergeMetrics(newName, oldName)
+                if self.metrics[newName].type != oldType:
+                    logger.info(
+                        f"Changing metric type for “{newName}” back to “{oldType}”"
+                    )
+                    self.metrics[newName].setType(oldType)
+                if self.metrics[newName].helpText != oldHelp:
+                    logger.info(
+                        f"Changing metric help for “{newName}” back to “{oldHelp}”"
+                    )
+                    self.metrics[newName].setHelp(oldHelp)
+                return True
+
+            logger.error(f"{log} No force so no change here.")
+            return False
+
+        logger.debug(f"Renaming “{oldName}” to “{newName}”.")
+        self.metrics[oldName].setName(newName)
+        self.metrics[newName] = self.metrics[oldName]
+        self.metrics.pop(oldName)
+        return True
+
+    def mergeMetrics(self, mainName, mergeName):
+        """merge metrics
+
+        `TYPE`, `HELP` and metric name of `mainName` metrics stay valid and
+        `mergeName` metrics will be integrated into `mainName`.
+        Integration will override / update metrics with the same labels by mergeName ones!
+
+        Args:
+            mainName (str): metrics name to merge `mergeName` into
+            mergeName (str): metrics name to get metrics to merge into `mainName`
+        """
+        if mainName not in self.metrics:
+            logger.warning(
+                f"“{mainName}” metrics do not exist – will rename “{mergeName}” to that name."
+            )
+            self.renameMetrics(mergeName, mainName)
+        else:
+            logger.debug(f"Merging “{mergeName}” metrics into “{mainName}”.")
+            oldHelp = self.metrics[mergeName].helpText
+            if oldHelp != None:
+                logger.info(f"Help “{oldHelp}” for merged metrics will be abandonned.")
+            oldType = self.metrics[mergeName].type
+            newType = self.metrics[mainName].type
+            if oldType != newType:
+                logger.warning(
+                    f"Type “{oldType}” differs from type “{newType}” where last one is type of destination metric."
+                )
+            merge = self.metrics.pop(mergeName)
+            for i in merge.instances:
+                self.addMetric(mainName, i.value, i.labels)
 
     def setHelp(self, metricName, helpText):
         """change help for metric
@@ -311,6 +388,239 @@ class MetricsCollection:
         for m in self.metrics.values():
             finalized.update(m.representation())
         return finalized
+
+    def load(self, metricsString, dismissComments=True):
+        """load (additional) metrics
+
+        Load data from given metrics string to merge with current collection or to manipulate, ...
+        By default, comments will be dismissed – otherwise they will probably be relocated to the nearest metrics since this
+        module only supports comments connected to metrics not floating around in the final metrics string.
+
+        Args:
+            metricsString (str): metrics string to load
+            dismissComments (bool): set `True` if comments (other than `# HELP` and `# TYPE`, which are mandatory) should be dismissed
+        """
+        # will work with comment assigning to metrics by distance in file, so first remove all blank lines
+        self._worklist = [l.strip() for l in metricsString.splitlines()]
+        # working variable for initialisation of metrics
+        self._createMetrics = {}
+        # working variable to store lines where which metric names were found
+        self._metricLines = {}
+        # working variable to store line indices which already were processed
+        self._lineRange = list(range(len(self._worklist)))
+        self._processedLines = [i for i in self._lineRange if self._worklist[i] == ""]
+        # find types
+        self._findTypes()
+        # find help notes
+        self._findHelps()
+        # create the metric collections
+        for metricName in self._createMetrics:
+            mt = None
+            mh = None
+            if "type" in self._createMetrics[metricName].keys():
+                mt = self._createMetrics[metricName]["type"]
+            if "help" in self._createMetrics[metricName].keys():
+                mh = self._createMetrics[metricName]["help"]
+            self.addMetric(
+                metricName=metricName,
+                helpText=mh,
+                metricType=mt,
+            )
+        # find actual metric instances
+        self._findMetricInstances()
+        # find comments
+        self._findComments(dismissComments=dismissComments)
+
+        # add metric instances
+        # check if any string is left over and warn about it
+        self._checkForLeftovers()
+        # clean create metrics variables
+        del self._createMetrics
+        del self._metricLines
+        del self._processedLines
+        del self._lineRange
+        del self._worklist
+        # print(self)
+
+    def _findTypes(self):
+        """find types in metrics string
+
+        helper method for `load` function which collects metric names and types in `self._worklist`
+        """
+        try:
+            self._worklist
+        except AttributeError:
+            logger.error("Method “_findTypes” is not meant to be called manually.")
+            return
+
+        regex = r"^#\s*TYPE\s+([^\s]+)\s+([^\s]+)\s*$"
+        for lineIndex in [i for i in self._lineRange if i not in self._processedLines]:
+            line = self._worklist[lineIndex]
+            typeRow = re.fullmatch(regex, line)
+            if typeRow != None:
+                self._processedLines.append(lineIndex)
+                groups = typeRow.groups()
+                # note down line as metric relevant line
+                if groups[0] not in self._metricLines:
+                    self._metricLines[groups[0]] = []
+                self._metricLines[groups[0]].append(lineIndex)
+                # store type of metric
+                if groups[0] not in self._createMetrics:
+                    self._createMetrics[groups[0]] = {}
+                if "type" in self._createMetrics[groups[0]]:
+                    logger.error(
+                        f"Type for metric with name {groups[0]} defined multiple times.\n"
+                        f"Only first occurence (“{self._createMetrics[groups[0]]['type']}”) in given metric definition will be applied."
+                    )
+                else:
+                    self._createMetrics[groups[0]]["type"] = groups[1]
+
+    def _findHelps(self):
+        """find help notices in metrics string
+
+        helper method for `load` function which collects help notices in `self._worklist` and adds them to corresponding names and types
+        """
+        try:
+            self._worklist
+        except AttributeError:
+            logger.error("Method “_findHelps” is not meant to be called manually.")
+            return
+
+        regex = r"^#\s*HELP\s+([^\s]+)\s+(.*)$"
+        for lineIndex in [i for i in self._lineRange if i not in self._processedLines]:
+            line = self._worklist[lineIndex]
+            helpRow = re.fullmatch(regex, line)
+            if helpRow != None:
+                self._processedLines.append(lineIndex)
+                groups = helpRow.groups()
+                # note down line as metric relevant line
+                if groups[0] not in self._metricLines:
+                    self._metricLines[groups[0]] = []
+                self._metricLines[groups[0]].append(lineIndex)
+                # store help of metric
+                if groups[0] not in self._createMetrics:
+                    self._createMetrics[groups[0]] = {}
+                if "help" in self._createMetrics[groups[0]]:
+                    logger.error(
+                        f"Help for metric with name {groups[0]} defined multiple times.\n"
+                        f"Only first occurence (“{self._createMetrics[groups[0]]['help']}”) in given metric definition will be applied."
+                    )
+                else:
+                    self._createMetrics[groups[0]][
+                        "help"
+                    ] = MetricsCollection.decodeOneliner(groups[1])
+
+    def _findComments(self, dismissComments=True):
+        """find comments and sort them to nearest metrics names
+
+        Args:
+            dismissComments (bool): should comments just be dropped? Yes => `True`, No => `False`
+        """
+        try:
+            self._worklist
+        except AttributeError:
+            logger.error("Method “_findComments” is not meant to be called manually.")
+            return
+
+        commentLineIndex = [
+            i
+            for i in self._lineRange
+            if i not in self._processedLines and self._worklist[i].startswith("#")
+        ]
+        self._processedLines += commentLineIndex
+
+        if not dismissComments:
+            start = {}
+            end = {}
+            for metricName in self._metricLines.keys():
+                start[metricName] = min(self._metricLines[metricName])
+                end[metricName] = max(self._metricLines[metricName])
+
+            for cl in commentLineIndex:
+                sd = {}
+                ed = {}
+                for metricName in self._metricLines.keys():
+                    sd[metricName] = abs(start[metricName] - cl)
+                    ed[metricName] = abs(end[metricName] - cl)
+                ls = min(sd.values())
+                le = min(ed.values())
+                if ls <= le:
+                    name = [k for k, v in sd.items() if v == ls][0]
+                else:
+                    name = [k for k, v in ed.items() if v == le][0]
+
+                self.addComment(name, self._worklist[cl].lstrip("#").strip())
+
+    def _findMetricInstances(self):
+        """find actual metric instances"""
+        try:
+            self._worklist
+        except AttributeError:
+            logger.error(
+                "Method “_findMetricInstances” is not meant to be called manually."
+            )
+            return
+
+        lineRegex = (
+            r"^("
+            + self.Metric.nameRegEx
+            + r")\s*(\{(.*)\})?\s+(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)$"
+        )
+        commaSplitRegex = r""",(?=(?:[^"']*["'][^"']*["'])*[^"']*$)"""
+        unquoteRegex = r"""((^"(.+)"$)|(^'(.+)'$))"""
+        for lineIndex in [i for i in self._lineRange if i not in self._processedLines]:
+            line = self._worklist[lineIndex]
+            metricLine = re.fullmatch(lineRegex, line)
+            if metricLine != None:
+                self._processedLines.append(lineIndex)
+                groups = metricLine.groups()
+                # note down line as metric relevant line
+                if groups[0] not in self._metricLines:
+                    self._metricLines[groups[0]] = []
+                self._metricLines[groups[0]].append(lineIndex)
+
+                # retrieve labels
+                labels = {}
+                if groups[2] != None:
+                    labelHelp = re.split(commaSplitRegex, groups[2])
+                    for l in labelHelp:
+                        l = l.split("=", 1)
+                        labels[l[0]] = re.sub(unquoteRegex, r"\3\5", l[1])
+
+                # add actual metric
+                if groups[0] not in self._createMetrics:
+                    self._createMetrics[groups[0]] = {}
+                    logger.warning(
+                        f"It seems there is a metric “{groups[0]}” without any TYPE or HELP defined in imported metrics."
+                    )
+
+                self.addMetric(groups[0], value=groups[3], labels=labels)
+
+    def _checkForLeftovers(self):
+        """check if the Metric string holds unknown, unallowed additional lines of code and warn about occurences"""
+        try:
+            self._worklist
+        except AttributeError:
+            logger.error(
+                "Method “_checkForLeftovers” is not meant to be called manually."
+            )
+            return
+
+    def decodeOneliner(singleLine):
+        """decode single line
+
+        Args:
+            singleLine (string): one single line – in Prometheus metrics, `\\` has
+                                 to be encoded as `\\\\` and newlines as `\\n`.
+
+        Returns:
+            string: decoded text, possibly multiline
+        """
+        if "\n" in singleLine:
+            logger.error("Single line has to be given to be able to decode anything!")
+        else:
+            singleLine = singleLine.replace("\\n", "\n").replace("\\\\", "\\")
+        return singleLine
 
     def __str__(self):
         """string representation

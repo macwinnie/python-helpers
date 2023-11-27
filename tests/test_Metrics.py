@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import copy
 import logging
+
 import pytest
 
 from macwinnie_pyhelpers.Metrics import MetricsCollection
@@ -98,6 +99,7 @@ def prepareMetricsObjectForTest(
     overrideNames=None,
     overrideLabels=None,
     overrideTypes=None,
+    overrideComments=[],
 ):
     """helper to prepare Metrics objects
 
@@ -123,6 +125,9 @@ def prepareMetricsObjectForTest(
             else:
                 l = overrideLabels[i][j]
             mc.addMetric(name, value=value, labels=l)
+        if i < len(overrideComments):
+            for c in overrideComments[i]:
+                mc.addComment(name, c)
     return mc
 
 
@@ -177,6 +182,7 @@ def test_metric_same_label_replace_value(caplog):
         in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
     )
 
+
 @pytest.mark.parametrize(
     "metricNameSuffix",
     (
@@ -187,26 +193,21 @@ def test_metric_same_label_replace_value(caplog):
 def test_metric_counter_name_warning(caplog, metricNameSuffix):
     """ensure the replacement of the value if labels are same"""
     names = copy.deepcopy(metric_names)
-    workIdx = metric_type.index('counter')
+    workIdx = metric_type.index("counter")
     if metricNameSuffix != None:
         names[workIdx] += metricNameSuffix
     with caplog.at_level(level="DEBUG"):
         mc = prepareMetricsObjectForTest(overrideNames=names)
 
-    logMsg = f'For a "counter" type metric, the name should have "_total" suffix, but "{names[workIdx]}" does not.'
-    logWarnings = [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+    logMsg = f"For a “counter” type metric, the name should have “_total” suffix, but “{names[workIdx]}” does not."
+    logWarnings = [
+        rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+    ]
 
     if metricNameSuffix != None:
-        assert (
-            logMsg
-            not in logWarnings
-        )
+        assert logMsg not in logWarnings
     else:
-        assert (
-            logMsg
-            in logWarnings
-        )
-
+        assert logMsg in logWarnings
 
 
 def test_name_change():
@@ -310,11 +311,11 @@ def test_error_on_metric_and_label_name_conflict(caplog):
 
     errorLogs = [rec.message for rec in caplog.records if rec.levelno == logging.ERROR]
     assert (
-        f'"{names[0]}" does not match the Prometheus specifications. Please adjust!'
+        f"“{names[0]}” does not match the Prometheus specifications. Please adjust!"
         in errorLogs
     )
     assert (
-        f'Label with name "{wrong_label}" does not match the Prometheus specifications. Please adjust!'
+        f"Label with name “{wrong_label}” does not match the Prometheus specifications. Please adjust!"
         in errorLogs
     )
 
@@ -372,6 +373,306 @@ def test_nonsense_metrics_type(caplog):
         mc = prepareMetricsObjectForTest(overrideTypes=types)
 
     assert (
-        f'"{types[2]}" is not a valid type, which are defined by {MetricsCollection.Metric.validMetricTypes}'
+        f"“{types[2]}” is not a valid type, which are defined by {MetricsCollection.Metric.validMetricTypes}"
         in [rec.message for rec in caplog.records if rec.levelno == logging.ERROR]
+    )
+
+
+@pytest.mark.parametrize(
+    "methodName",
+    (
+        "_findTypes",
+        "_findHelps",
+        "_findComments",
+        "_findMetricInstances",
+        "_checkForLeftovers",
+    ),
+)
+def test_non_manual_functions(caplog, methodName):
+    """Those methods are not allowed to be called manual since they are helpers for loading ... for that test their abortion."""
+    mc = MetricsCollection()
+    method = getattr(mc, methodName)
+    with caplog.at_level(level="DEBUG"):
+        method()
+
+    assert f"Method “{methodName}” is not meant to be called manually." in [
+        rec.message for rec in caplog.records if rec.levelno == logging.ERROR
+    ]
+
+
+@pytest.mark.parametrize(
+    ("decoded", "encoded"),
+    (
+        ("\\", "\\\\"),
+        ("\n", "\\n"),
+    ),
+)
+def test_decode_oneliner(encoded, decoded):
+    """test encoding of one liners
+
+    Metrics need `\\` and newlines encoded in label values and Help texts.
+    """
+    assert MetricsCollection.decodeOneliner(encoded) == decoded
+
+
+def test_decode_oneliner_error_multiline(caplog):
+    test = """Lorem \\\\
+ipsum"""
+    with caplog.at_level(level="DEBUG"):
+        result = MetricsCollection.decodeOneliner(test)
+
+    assert result == test
+    assert "Single line has to be given to be able to decode anything!" in [
+        rec.message for rec in caplog.records if rec.levelno == logging.ERROR
+    ]
+
+
+def test_debug_log_missing_value_metric_creation(caplog):
+    """check if logging on metric cration with no value works out as required"""
+    mc = MetricsCollection()
+    with caplog.at_level(level="DEBUG"):
+        mc.addMetric(
+            metric_names[0], helpText=metric_help[0], metricType=metric_type[0]
+        )
+
+    assert (
+        f"Not adding metric instance for “{metric_names[0]}” due to missing value!"
+        in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
+    )
+
+
+@pytest.mark.parametrize(
+    "dismissComments",
+    (
+        None,
+        True,
+        False,
+    ),
+)
+def test_loading_metrics(dismissComments):
+    """check that loaded metrics from metric strings are the same as built up from scratch ones"""
+    comments = []
+    if dismissComments != None:
+        comments = [
+            # comment lines are added to loadString manually below!
+            [
+                "This is a test comment on first metric",
+                "This is a second test comment on first metric",
+            ],
+            [],
+            ["Appended comment to be sorted"],
+        ]
+    if dismissComments == None or dismissComments == True:
+        mc1 = prepareMetricsObjectForTest()
+    else:
+        mc1 = prepareMetricsObjectForTest(overrideComments=comments)
+
+    loadString = copy.deepcopy(metrics_string).splitlines()
+    for i in range(2):
+        loadString.append("")
+    if len(comments) > 0:
+        for i in range(len(comments[0])):
+            loadString.insert(1 + i, f"# {comments[0][i]}")
+        for c in comments[2]:
+            loadString.append(f"# {c}")
+    loadString = "\n".join(loadString)
+
+    mc2 = MetricsCollection()
+    mc2.load(loadString, dismissComments)
+    assert str(mc1) == str(mc2)
+
+
+def test_comma_in_metric_label():
+    """Test if creating metrics with commas in label values works as normal as well as if loading those metrics files runs through"""
+    test_idx = 0
+    test_prefix = "comma in label, "
+
+    test_metric_name = metric_names[test_idx]
+    labels = copy.deepcopy(metric_labels)
+    test_label_name = list(labels[test_idx][test_idx].keys())[test_idx]
+
+    original_value = copy.deepcopy(labels[test_idx][test_idx][test_label_name])
+
+    labels[test_idx][test_idx][test_label_name] = (
+        test_prefix + labels[test_idx][test_idx][test_label_name]
+    )
+
+    expected = copy.deepcopy(metrics_string)
+    expected_pre = f'{test_metric_name}{{{test_label_name}="'
+    expected = expected.replace(
+        f"{expected_pre}{original_value}",
+        f"{expected_pre}{test_prefix}{original_value}",
+    )
+
+    mc1 = prepareMetricsObjectForTest(overrideLabels=labels)
+    assert str(mc1) == expected
+
+    mc2 = MetricsCollection()
+    mc2.load(expected)
+
+    assert str(mc1) == str(mc2)
+
+
+@pytest.mark.parametrize(
+    "newExisting",
+    (
+        True,
+        False,
+    ),
+)
+def test_merge_metrics(newExisting, caplog):
+    mc = prepareMetricsObjectForTest()
+    oldIdx = 0
+    newIdx = 2
+    oldName = metric_names[oldIdx]
+    newType = metric_type[newIdx] or "gauge"
+    newName = "totally_new_metric_name"
+    if newExisting:
+        newName = metric_names[newIdx]
+
+    with caplog.at_level(level="DEBUG"):
+        mc.mergeMetrics(newName, oldName)
+
+    assert oldName not in mc.metrics.keys()
+    for metric in mc.metrics[newName].instances:
+        assert metric.name == newName
+
+    if newExisting:
+        assert f"Merging “{oldName}” metrics into “{newName}”." in [
+            rec.message for rec in caplog.records if rec.levelno == logging.DEBUG
+        ]
+        assert (
+            f"Help “{metric_help[oldIdx]}” for merged metrics will be abandonned."
+            in [rec.message for rec in caplog.records if rec.levelno == logging.INFO]
+        )
+        assert (
+            f"Type “{metric_type[oldIdx]}” differs from type “{newType}” where last one is type of destination metric."
+            in [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+        )
+    else:
+        assert (
+            f"“{newName}” metrics do not exist – will rename “{oldName}” to that name."
+            in [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+        )
+
+
+@pytest.mark.parametrize(
+    "newExisting",
+    (
+        True,
+        False,
+    ),
+)
+@pytest.mark.parametrize(
+    "force",
+    (
+        True,
+        False,
+    ),
+)
+def tests_rename_metrics(newExisting, force, caplog):
+    mc = prepareMetricsObjectForTest()
+    oldIdx = 0
+    newIdx = 1
+    oldName = metric_names[oldIdx]
+    oldHelp = metric_help[oldIdx]
+    oldType = metric_type[oldIdx] or "gauge"
+    newName = "totally_new_metric_name"
+    if newExisting:
+        newName = metric_names[newIdx]
+
+    with caplog.at_level(level="DEBUG"):
+        mc.renameMetrics(oldName, newName, force)
+
+    if newExisting and not force:
+        assert oldName in mc.metrics.keys()
+        assert f"Metric “{newName}” already exists. No force so no change here." in [
+            rec.message for rec in caplog.records if rec.levelno == logging.ERROR
+        ]
+    else:
+        assert oldName not in mc.metrics.keys()
+        for metric in mc.metrics[newName].instances:
+            assert metric.name == newName
+        if not newExisting:
+            assert f"Renaming “{oldName}” to “{newName}”." in [
+                rec.message for rec in caplog.records if rec.levelno == logging.DEBUG
+            ]
+        else:
+            infoLogs = [
+                rec.message for rec in caplog.records if rec.levelno == logging.INFO
+            ]
+            assert f"Metric “{newName}” already exists. Doing a merge." in infoLogs
+            assert (
+                f"Changing metric type for “{newName}” back to “{oldType}”" in infoLogs
+            )
+            assert (
+                f"Changing metric help for “{newName}” back to “{oldHelp}”" in infoLogs
+            )
+
+
+def test_load_duplicate_type_def(caplog):
+    loadString = """# TYPE test_metric gauge
+# HELP test_metric Testing duplicate metric type
+# TYPE test_metric counter
+test_metric 1
+"""
+    mc = MetricsCollection()
+    with caplog.at_level(level="DEBUG"):
+        mc.load(loadString)
+
+    assert len(mc.metrics["test_metric"].instances) == 1
+
+    assert """Type for metric with name test_metric defined multiple times.
+Only first occurence (“gauge”) in given metric definition will be applied.""" in [
+        rec.message for rec in caplog.records if rec.levelno == logging.ERROR
+    ]
+
+
+def test_load_duplicate_help_def(caplog):
+    loadString = """# TYPE test_metric gauge
+# HELP test_metric Testing duplicate metric help 1
+# HELP test_metric Testing duplicate metric help 2
+test_metric 1
+"""
+    mc = MetricsCollection()
+    with caplog.at_level(level="DEBUG"):
+        mc.load(loadString)
+
+    assert len(mc.metrics["test_metric"].instances) == 1
+
+    assert """Help for metric with name test_metric defined multiple times.
+Only first occurence (“Testing duplicate metric help 1”) in given metric definition will be applied.""" in [
+        rec.message for rec in caplog.records if rec.levelno == logging.ERROR
+    ]
+
+
+def test_load_without_type(caplog):
+    loadString = """# HELP test_metric Testing duplicate metric type
+test_metric 1
+"""
+    mc = MetricsCollection()
+    with caplog.at_level(level="DEBUG"):
+        mc.load(loadString)
+
+    assert len(mc.metrics["test_metric"].instances) == 1
+    assert (
+        f"Defaulting metric type to `{MetricsCollection.Metric.dafaultType}` for new created metric `test_metric`."
+        in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
+    )
+
+
+def test_load_without_type_and_help(caplog):
+    loadString = "test_metric 1"
+    mc = MetricsCollection()
+    with caplog.at_level(level="DEBUG"):
+        mc.load(loadString)
+
+    assert len(mc.metrics["test_metric"].instances) == 1
+    assert (
+        f"It seems there is a metric “test_metric” without any TYPE or HELP defined in imported metrics."
+        in [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+    )
+    assert (
+        f"Defaulting metric type to `{MetricsCollection.Metric.dafaultType}` for new created metric `test_metric`."
+        in [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
     )
