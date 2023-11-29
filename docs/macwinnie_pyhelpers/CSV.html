@@ -555,11 +555,17 @@
 <p>According to <code>A</code> is <code>0</code>, <code>Z</code> is <code>26</code>, <code>AA</code> is <code>27</code> and so on, this
 method is meant to translate the alphabetic “number” to an integer.</p>
 
-<p>Args:
-    colName (str): XLS column representation, e.g. <code>A</code> or <code>AA</code>, ...</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    int: index representation as integer</p>
+<ul>
+<li><strong>colName (str):</strong>  XLS column representation, e.g. <code>A</code> or <code>AA</code>, ...</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>int: index representation as integer</p>
+</blockquote>
 </div>
 
 
@@ -607,11 +613,17 @@ method is meant to translate the alphabetic “number” to an integer.</p>
 function is meant to translate an integer to its alphabetic “number”
 representation.</p>
 
-<p>Args:
-    colInt (int): index to be transferred to XLS column representation</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    str: XLS column representation</p>
+<ul>
+<li><strong>colInt (int):</strong>  index to be transferred to XLS column representation</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>str: XLS column representation</p>
+</blockquote>
 </div>
 
 
@@ -970,9 +982,12 @@ If the data is given JSON like – as a list of dictionaries where each row
 (dictionary) contains the column names as keys and the cell content as value
 – the second constructor-parameter has to be set <code>True</code>.</p>
 
-<p>Attributes:
-    specs: specifications for CSV, <code>delimiter</code> defaulting to <code>;</code>, <code>emptyValue</code>
-           defaulting to <code>None</code> and <code>linebreak</code> defaulting to <code>\n</code>.</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>specs:</strong>  specifications for CSV, <code>delimiter</code> defaulting to <code>;</code>, <code>emptyValue</code>
+defaulting to <code>None</code> and <code>linebreak</code> defaulting to <code>\n</code>.</li>
+</ul>
 </div>
 
 
@@ -1074,9 +1089,12 @@ If the data is given JSON like – as a list of dictionaries where each row
 
 <p>Method to load especially a CSV file stored in the filesystem.</p>
 
-<p>Args:
-    filepath (str): path to CSV file
-    delimiter (str): delimiter to resolve the CSV data (default: <code>None</code>)</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>filepath (str):</strong>  path to CSV file</li>
+<li><strong>delimiter (str):</strong>  delimiter to resolve the CSV data (default: <code>None</code>)</li>
+</ul>
 </div>
 
 
@@ -1125,10 +1143,13 @@ If the data is given JSON like – as a list of dictionaries where each row
 
 <p>[description]</p>
 
-<p>Args:
-    path_or_csvstring (string): either the path to the file to resolve or CSV data itself
-    delimiter (str): delimiter to resolve the CSV data (default: <code>None</code>)
-    file (bool): is it a file to read? (default: <code>False</code>)</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>path_or_csvstring (string):</strong>  either the path to the file to resolve or CSV data itself</li>
+<li><strong>delimiter (str):</strong>  delimiter to resolve the CSV data (default: <code>None</code>)</li>
+<li><strong>file (bool):</strong>  is it a file to read? (default: <code>False</code>)</li>
+</ul>
 </div>
 
 
@@ -1201,13 +1222,16 @@ common and <code>kvDict</code> shall be <code>True</code>.
 If the data is a dict of column-keys with a list of column-values
 where the index is the number of the row, <code>kvDict</code> shall be <code>False</code>.</p>
 
-<p>Args:
-    data (mixed):       CSV data
-    kvDict (bool):      is the data key-value structured? (default: <code>False</code>)
-    emptyValue (mixed): value to override <code>self.specs['emptyValue']</code> to be
-                        used for empty columns
-    skipRows (bool):    should the data be transferred into rows? DON'T USE
-                        UNLESS YOU KNOW WHAT YOU'RE DOING! (default: <code>False</code>)</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>data (mixed):</strong>        CSV data</li>
+<li><strong>kvDict (bool):</strong>       is the data key-value structured? (default: <code>False</code>)</li>
+<li><strong>emptyValue (mixed):</strong>  value to override <code>self.specs['emptyValue']</code> to be
+used for empty columns</li>
+<li><strong>skipRows (bool):</strong>     should the data be transferred into rows? DON'T USE
+UNLESS YOU KNOW WHAT YOU'RE DOING! (default: <code>False</code>)</li>
+</ul>
 </div>
 
 
@@ -1236,8 +1260,11 @@ where the index is the number of the row, <code>kvDict</code> shall be <code>Fal
 
             <div class="docstring"><p>remove row from CSV</p>
 
-<p>Args:
-    row (dict): row object to remove from CSV</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>row (dict):</strong>  row object to remove from CSV</li>
+</ul>
 </div>
 
 
@@ -1269,11 +1296,17 @@ where the index is the number of the row, <code>kvDict</code> shall be <code>Fal
 
             <div class="docstring"><p>pop row from CSV – like from lists</p>
 
-<p>Args:
-    index (int): index of row to pop</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    dict: row removed / poped from CSV</p>
+<ul>
+<li><strong>index (int):</strong>  index of row to pop</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>dict: row removed / poped from CSV</p>
+</blockquote>
 </div>
 
 
@@ -1306,8 +1339,11 @@ where the index is the number of the row, <code>kvDict</code> shall be <code>Fal
 
 <p>Return CSV data</p>
 
-<p>Returns:
-    dict: keys are column titles, assigned lists are column values per row</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>dict: keys are column titles, assigned lists are column values per row</p>
+</blockquote>
 </div>
 
 
@@ -1344,9 +1380,12 @@ where the index is the number of the row, <code>kvDict</code> shall be <code>Fal
 like the <code>delimiter</code> (default <code>;</code>) and the
 <code>linebreak</code> (default <code>\n</code>)</p>
 
-<p>Args:
-    spec(str): name of specification
-    val(str): value for spec</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>spec(str):</strong>  name of specification</li>
+<li><strong>val(str):</strong>  value for spec</li>
+</ul>
 </div>
 
 
@@ -1389,11 +1428,17 @@ like the <code>delimiter</code> (default <code>;</code>) and the
 <p>Method to get row representation of CSV and prepare an additional variable
 <code><a href="#CSV.rows">rows</a></code> that allows us to use <code><a href="#CSV">CSV</a></code> object as iterable.</p>
 
-<p>Args:
-    force (bool): Shall the row representation be renewed by force? (default: <code>False</code>)</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    list: list of rows in CSV</p>
+<ul>
+<li><strong>force (bool):</strong>  Shall the row representation be renewed by force? (default: <code>False</code>)</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>list: list of rows in CSV</p>
+</blockquote>
 </div>
 
 
@@ -1532,12 +1577,18 @@ e.g. if the CSV was created by an export</p>
 
 <p>Method to get row representation of CSV.</p>
 
-<p>Args:
-    keepEmpty (bool): if set to True, empty values are kept in row representation (default: <code>False</code>)
-    emptyValue (mixed): value that should be used for kept empty values (default: <code>None</code>)</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    list: list of rows in CSV</p>
+<ul>
+<li><strong>keepEmpty (bool):</strong>  if set to True, empty values are kept in row representation (default: <code>False</code>)</li>
+<li><strong>emptyValue (mixed):</strong>  value that should be used for kept empty values (default: <code>None</code>)</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>list: list of rows in CSV</p>
+</blockquote>
 </div>
 
 
@@ -1595,12 +1646,15 @@ e.g. if the CSV was created by an export</p>
 
 <p>Method to write out data of current object to a CSV file.</p>
 
-<p>Args:
-    filepath (str): path to destination file
-    delimiter (str): delimiter to be used for column separation – changes specs! (default: <code>None</code>)
-    linebreak (str): linebreak to be used in CSV representation – changes specs! (default: <code>None</code>)
-    backupExisting (bool): if <code>True</code> and file at filepath already exists, it will be renamed
-                           (timestamp appended) and the new file will be written out in place (default: <code>False</code>)</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>filepath (str):</strong>  path to destination file</li>
+<li><strong>delimiter (str):</strong>  delimiter to be used for column separation – changes specs! (default: <code>None</code>)</li>
+<li><strong>linebreak (str):</strong>  linebreak to be used in CSV representation – changes specs! (default: <code>None</code>)</li>
+<li><strong>backupExisting (bool):</strong>  if <code>True</code> and file at filepath already exists, it will be renamed
+(timestamp appended) and the new file will be written out in place (default: <code>False</code>)</li>
+</ul>
 </div>
 
 
