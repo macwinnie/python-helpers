@@ -22,7 +22,7 @@ class MetricsCollection:
         Set of metrics of the same name with multiple instances, differenciated by the set labels
         """
 
-        validMetricTypes = ["counter", "gauge", "histogram", "summary", "untyped"]
+        validMetricTypes = ["counter", "gauge", "histogram", "summary", None]
 
         class MetricInstance:
             """single metric
