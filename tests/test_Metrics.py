@@ -679,7 +679,7 @@ def test_load_without_type_and_help(caplog):
 
 
 def test_load_with_empty_label(caplog):
-    loadString = "test_metric{empty_label=\"\"} 1"
+    loadString = 'test_metric{empty_label=""} 1'
     mc = MetricsCollection()
     with caplog.at_level(level="DEBUG"):
         mc.load(loadString)
