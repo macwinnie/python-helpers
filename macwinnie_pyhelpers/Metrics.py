@@ -567,7 +567,7 @@ class MetricsCollection:
             + r")\s*(\{(.*)\})?\s+(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)$"
         )
         commaSplitRegex = r""",(?=(?:[^"']*["'][^"']*["'])*[^"']*$)"""
-        unquoteRegex = r"""((^"(.+)"$)|(^'(.+)'$))"""
+        unquoteRegex = r"""((^"(.*)"$)|(^'(.*)'$))"""
         for lineIndex in [i for i in self._lineRange if i not in self._processedLines]:
             line = self._worklist[lineIndex]
             metricLine = re.fullmatch(lineRegex, line)
