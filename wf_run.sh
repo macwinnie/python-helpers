@@ -34,6 +34,7 @@ source .envrc
 ###
 ## ensure all repository criterias are met – so run
 ###
+pre-commit autoupdate && git add -A
 pre-commit run --all-files
 
 
