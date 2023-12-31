@@ -547,6 +547,32 @@ def test_string_escape_quotes(rows, cols, rowWithQuotes, colWithQuotes):
     assert str(csvObject) == expected
 
 
+def test_string_escape_quotes_reverse():
+    load_csv = '''"test";"columns"
+"This is a """TEST"""";"with escaped quotes"
+'''
+
+    csvObject = CSV()
+    csvObject.readCSV(load_csv)
+
+    assert str(csvObject) == load_csv
+
+
+def test_load_multiline_cell_csv():
+    first_cell = """This is a
+multiline cell"""
+    load_csv = f'''"test";"columns"
+"{first_cell}";"And this is another
+multiline cell"
+'''
+
+    csvObject = CSV()
+    csvObject.readCSV(load_csv)
+
+    assert csvObject.rows[0]["test"] == first_cell
+    assert str(csvObject) == load_csv
+
+
 @pytest.mark.parametrize(
     ("rows", "cols"),
     ((10, 10),),
