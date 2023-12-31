@@ -548,13 +548,24 @@ def test_string_escape_quotes(rows, cols, rowWithQuotes, colWithQuotes):
 
 
 def test_string_escape_quotes_reverse():
-    load_csv = '''"test";"columns"
-"This is a """TEST"""";"with escaped quotes"
+    cell_1_1 = 'This is a """TEST"""'
+    cell_2_1 = 'Unclosed """ quote'
+    cell_3_1 = 'Single quote"""'
+    load_csv = f'''"three";"test";"columns"
+"{cell_1_1}";"with escaped";"quotes"
+"{cell_2_1}";"in first cell";"of row"
 '''
+
+# # this test is more complex to fix while `pandas` Bug ...
+#     load_csv = f'''{load_csv}"{cell_3_1}";"at the end of";"first cell"
+# '''
 
     csvObject = CSV()
     csvObject.readCSV(load_csv)
 
+    assert cell_1_1.replace('"""', '"') == csvObject.rows[0]["three"]
+    assert cell_2_1.replace('"""', '"') == csvObject.rows[1]["three"]
+    # assert cell_3_1.replace('"""', '"') == csvObject.rows[2]["three"]
     assert str(csvObject) == load_csv
 
 
