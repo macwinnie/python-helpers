@@ -551,14 +551,14 @@ def test_string_escape_quotes_reverse():
     cell_1_1 = 'This is a """TEST"""'
     cell_2_1 = 'Unclosed """ quote'
     cell_3_1 = 'Single quote"""'
-    load_csv = f'''"three";"test";"columns"
+    load_csv = f""""three";"test";"columns"
 "{cell_1_1}";"with escaped";"quotes"
 "{cell_2_1}";"in first cell";"of row"
-'''
+"""
 
-# # this test is more complex to fix while `pandas` Bug ...
-#     load_csv = f'''{load_csv}"{cell_3_1}";"at the end of";"first cell"
-# '''
+    # # this test is more complex to fix while `pandas` Bug ...
+    #     load_csv = f'''{load_csv}"{cell_3_1}";"at the end of";"first cell"
+    # '''
 
     csvObject = CSV()
     csvObject.readCSV(load_csv)
@@ -572,10 +572,10 @@ def test_string_escape_quotes_reverse():
 def test_load_multiline_cell_csv():
     first_cell = """This is a
 multiline cell"""
-    load_csv = f'''"test";"columns"
+    load_csv = f""""test";"columns"
 "{first_cell}";"And this is another
 multiline cell"
-'''
+"""
 
     csvObject = CSV()
     csvObject.readCSV(load_csv)

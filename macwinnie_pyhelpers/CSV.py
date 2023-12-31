@@ -163,14 +163,11 @@ class CSV:
             # https://github.com/pandas-dev/pandas/issues/56690#issue-2061071091
             # # rows[h] = data.get(h).to_list()
             rows[h] = [
-                v if not (
-                    isinstance(v, str) and
-                    (
-                        v.endswith('"') and
-                        v[:-1].find('"') != -1
-                    )
-                ) else
-                v.replace('"""', '"')[:-1]
+                v
+                if not (
+                    isinstance(v, str) and (v.endswith('"') and v[:-1].find('"') != -1)
+                )
+                else v.replace('"""', '"')[:-1]
                 for v in data.get(h).to_list()
             ]
         self.data = rows
