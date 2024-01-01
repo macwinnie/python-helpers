@@ -115,7 +115,7 @@ class CSV:
                 '"{values}"'.format(
                     values='"{delim}"'.format(delim=self.specs["delimiter"]).join(
                         [
-                            str(c).replace('"', '"""')
+                            str(c).replace('"', '""')
                             if isinstance(c, str) or not math.isnan(c)
                             else ""
                             for c in r
@@ -157,21 +157,11 @@ class CSV:
                 delimiter=delimiter,
                 low_memory=False,
             )
-        rows = {}
+        colrows = {}
         for h in data.columns:
-            # TODO: fix back when `pandas` BUG is fixed:
-            # https://github.com/pandas-dev/pandas/issues/56690#issue-2061071091
-            # # rows[h] = data.get(h).to_list()
-            rows[h] = [
-                v
-                if not (
-                    isinstance(v, str) and (v.endswith('"') and v[:-1].find('"') != -1)
-                )
-                else v.replace('"""', '"')[:-1]
-                for v in data.get(h).to_list()
-            ]
-        self.data = rows
+            colrows[h] = data.get(h).to_list()
 
+        self.data = colrows
         self.getRows(force=True)
 
     def loadData(self, data, kvDict=False, emptyValue=None, skipRows=False):
