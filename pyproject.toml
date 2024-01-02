@@ -5,7 +5,7 @@ description = "Set of python helpers for daily jobs"
 authors = ["macwinnie <dev@macwinnie.me>"]
 license = "GNU AFFERO GENERAL PUBLIC LICENSE"
 readme = "README.md"
-homepage = "https://github.com/macwinnie/python-helpers"
+homepage = "https://macwinnie.github.io/python-helpers"
 repository = "https://github.com/macwinnie/python-helpers/"
 classifiers=[
     "Programming Language :: Python :: 3",
@@ -15,7 +15,6 @@ classifiers=[
 packages = [
     { include = "macwinnie_pyhelpers" },
 ]
-include = ["buildconfig.json"]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4"
