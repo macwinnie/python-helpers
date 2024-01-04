@@ -276,6 +276,22 @@ class CSV:
 
         return self.rows
 
+    def combine(self, csv):
+        """merge another CSV object
+
+        Args:
+            csv (CSV): CSV object to merge
+
+        Raises:
+            TypeError: raises when non-CSV object is given
+        """
+        if not isinstance(csv, type(self)):
+            raise TypeError('Only CSV objects are permitted!')
+        else:
+            self.rows = self.rows + csv.rows
+            self.rowCheck = True
+            self.refreshFromRows()
+
     def refreshFromRows(self):
         """reload the CSV from rows
 

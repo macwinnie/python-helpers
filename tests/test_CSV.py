@@ -616,3 +616,31 @@ def test_string_emtpy_cell(rows, cols, rowWithEmpty, emptyCol):
     csvObject = CSV(csvRows)
 
     assert str(csvObject) == expected
+
+def test_combine_two_csv_objects():
+    rows1 = 5
+    rows2 = 5
+    cols1 = 5
+    cols2 = 10
+    (csv1rows,) = prepareExampleCSV(cols=cols1, rows=rows1, vals=["csvRows"])
+    (csv2rows,) = prepareExampleCSV(cols=cols2, rows=rows2, vals=["csvRows"])
+    csv1 = CSV(csv1rows)
+    csv2 = CSV(csv2rows)
+    csv1.combine(csv2)
+
+    assert len(csv1) == rows1 + rows2
+    assert len(csv1.data.keys()) == max(cols1, cols2)
+
+def test_combine_with_dict_exception():
+    rows1 = 5
+    rows2 = 5
+    cols1 = 5
+    cols2 = 10
+    (csv1rows,) = prepareExampleCSV(cols=cols1, rows=rows1, vals=["csvRows"])
+    (csv2rows,) = prepareExampleCSV(cols=cols2, rows=rows2, vals=["csvRows"])
+    csv1 = CSV(csv1rows)
+    try:
+        csv1.combine(csv2rows)
+        assert False
+    except TypeError:
+        assert True
