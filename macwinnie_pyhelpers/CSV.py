@@ -286,7 +286,7 @@ class CSV:
             TypeError: raises when non-CSV object is given
         """
         if not isinstance(csv, type(self)):
-            raise TypeError('Only CSV objects are permitted!')
+            raise TypeError("Only CSV objects are permitted!")
         else:
             self.rows = self.rows + csv.rows
             self.rowCheck = True

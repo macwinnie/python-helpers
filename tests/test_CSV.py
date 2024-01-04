@@ -617,6 +617,7 @@ def test_string_emtpy_cell(rows, cols, rowWithEmpty, emptyCol):
 
     assert str(csvObject) == expected
 
+
 def test_combine_two_csv_objects():
     rows1 = 5
     rows2 = 5
@@ -630,6 +631,7 @@ def test_combine_two_csv_objects():
 
     assert len(csv1) == rows1 + rows2
     assert len(csv1.data.keys()) == max(cols1, cols2)
+
 
 def test_combine_with_dict_exception():
     rows1 = 5
