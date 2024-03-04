@@ -3,6 +3,8 @@ import copy
 import logging
 
 import pytest
+from jinja2 import BaseLoader
+from jinja2 import Environment
 
 from macwinnie_pyhelpers.Metrics import MetricsCollection
 
@@ -746,3 +748,36 @@ def test_suffix_warnings(matchSuffix, metricType, metricNameSuffix, expected, ca
         assert logMsg in logWarnings
     else:
         assert logMsg not in logWarnings
+
+
+def test_empty_metric_instance_preparation(caplog):
+    """test the empty creation of metric sets"""
+    helptext = "Information on how to use the metric"
+    metrictype = "gauge"
+
+    mwv = "metric_with_value"
+    mwa = "metric_without_anything"
+    msh = "metric_set_help"
+    mst = "metric_set_type"
+
+    with caplog.at_level(level="DEBUG"):
+        mc = MetricsCollection()
+        mc.addMetric(mwv, 10)
+        mc.ensureMetric(mwv)
+        mc.ensureMetric(mwa)
+        mc.setHelp(msh, helptext)
+        mc.setType(mst, metrictype)
+
+    logDebugs = [rec.message for rec in caplog.records if rec.levelno == logging.DEBUG]
+
+    newMetric = Environment(loader=BaseLoader).from_string(
+        "Created metric “{{ metricName }}” with no instances for now."
+    )
+    metricFound = Environment(loader=BaseLoader).from_string(
+        "Metric “{{ metricName }}” already exists."
+    )
+
+    assert metricFound.render(metricName=mwv) in logDebugs
+    assert newMetric.render(metricName=mwa) in logDebugs
+    assert newMetric.render(metricName=msh) in logDebugs
+    assert newMetric.render(metricName=mst) in logDebugs

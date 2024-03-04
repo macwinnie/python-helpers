@@ -115,9 +115,11 @@ class CSV:
                 '"{values}"'.format(
                     values='"{delim}"'.format(delim=self.specs["delimiter"]).join(
                         [
-                            str(c).replace('"', '""')
-                            if isinstance(c, str) or not math.isnan(c)
-                            else ""
+                            (
+                                str(c).replace('"', '""')
+                                if isinstance(c, str) or not math.isnan(c)
+                                else ""
+                            )
                             for c in r
                         ]
                     )

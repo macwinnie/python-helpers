@@ -525,9 +525,9 @@ class MetricsCollection:
                         f"Only first occurence (“{self._createMetrics[groups[0]]['help']}”) in given metric definition will be applied."
                     )
                 else:
-                    self._createMetrics[groups[0]][
-                        "help"
-                    ] = MetricsCollection.decodeOneliner(groups[1])
+                    self._createMetrics[groups[0]]["help"] = (
+                        MetricsCollection.decodeOneliner(groups[1])
+                    )
 
     def _findComments(self, dismissComments=True):
         """find comments and sort them to nearest metrics names
