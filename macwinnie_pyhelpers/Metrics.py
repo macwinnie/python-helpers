@@ -243,6 +243,23 @@ class MetricsCollection:
         """create set of metrics"""
         self.metrics = {}
 
+    def ensureMetric(self, metricName, helpText=None, metricType=None):
+        """ensure metric existing also if no instances are present
+
+        Args:
+            metricName (str): name of metric to be added (see https://prometheus.io/docs/concepts/data_model/ for data model)
+            helpText (str): help information for the metric collection of name metricName (default: `None`)
+            metricType (str): type of metric to be used – see https://prometheus.io/docs/concepts/metric_types/
+                              (default: None, will default to `gauge` on creation)
+        """
+        if metricName not in self.metrics:
+            self.metrics[metricName] = self.Metric(
+                name=metricName, helpText=helpText, metricType=metricType
+            )
+            logger.debug(f"Created metric “{metricName}” with no instances for now.")
+        else:
+            logger.debug(f"Metric “{metricName}” already exists.")
+
     def addMetric(
         self, metricName, value=None, labels={}, helpText=None, metricType=None
     ):
@@ -367,6 +384,7 @@ class MetricsCollection:
             metricName (str): name of metric to set the help information
             helpText (str): help information about what the metric is to say
         """
+        self.ensureMetric(metricName)
         self.metrics[metricName].setHelp(helpText)
 
     def setType(self, metricName, metricType=None):
@@ -376,6 +394,7 @@ class MetricsCollection:
             metricName (str): name of metric to set type for
             metricType (str): type to be set for metric (default: `"gauge"`)
         """
+        self.ensureMetric(metricName)
         self.metrics[metricName].setType(metricType)
 
     def prepare(self):
