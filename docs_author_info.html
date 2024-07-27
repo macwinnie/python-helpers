@@ -7,13 +7,20 @@
         To install this package, please run:<br/><br/>
         <pre>pip install macwinnie-pyhelpers</pre>
     </p>
+    <p>
+        Package has now two extras – and <code>CSV</code> and <code>Browser</code> modules that won't work without installing the corresponding optional packages.<br/><br/>
+        For usage of <code>CSV</code> module, you'd need to install the extra by <code>pip install macwinnie-pyhelpers[csv]</code>.<br/>
+        For usage of <code>Browser</code> module, you'd need to install teh extra by <code>pip install macwinnie-pyhelpers[browser]</code>.
+    </p>
     <h2>Examples of usage:</h2>
     <h3>Working with <code>python</code> history in Python shell:</h3>
-    <pre>from macwinnie_pyhelpers.PyHistory import printHistory
+    <pre>from macwinnie_pyhelpers.PyHistory import saveHistory
 saveHistory("path/to/historyfile.txt")
+
+from macwinnie_pyhelpers.PyHistory import printHistory
 printHistory()</pre>
 
-    <h3>Handling CSV data</h3>
+    <h3>Handling CSV data (install with extra <code>csv</code>!)</h3>
     <pre>from macwinnie_pyhelpers.CSV import CSV
 csv = CSV()
 csv.loadData([
