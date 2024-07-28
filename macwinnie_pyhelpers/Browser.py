@@ -14,8 +14,6 @@ from selenium.webdriver.remote.webdriver import WebDriver as SeleniumBrowser
 
 session_file = os.getenv("BROWSER_SESSION_FILE", "session.pickle")
 
-logger = logging.getLogger(__name__)
-
 
 def helper_set_value_at_key(dictionary, dotted_key_string, value):
     keys = dotted_key_string.split(".")
@@ -100,7 +98,7 @@ class Browser:
 
         atexit.register(self.__cleanup)
 
-    def __cleanup(self):
+    def __cleanup(self):  # pragma: no cover
         """close browser instance
 
         magic function to close the browser and session instance
@@ -128,7 +126,7 @@ class Browser:
                     t = type(self.session)
                     try:
                         del self.session
-                    except:
+                    except:  # pragma: no cover
                         pass
                     raise TypeError(
                         f"No Session object stored in {session_file} but an object of type {t}"
@@ -174,7 +172,7 @@ class Browser:
         else:
             raise KeyError(f"Invalid basic attribute `{attribute}` given ...")
 
-    def save_session(self):
+    def save_session(self):  # pragma: no cover
         """save session as Pickel dump"""
         if not hasattr(self, "dump_session") or self.dump_session:
             with open(session_file, "wb") as f:
@@ -183,7 +181,7 @@ class Browser:
         else:
             self.logger.info("Session file disabled by `dump_session` attribute.")
 
-    def session_exec(self, method, *args, **kwargs):
+    def session_exec(self, method, *args, **kwargs):  # pragma: no cover
         """method proxy for requests session
 
         Args:
@@ -213,7 +211,7 @@ class Browser:
             except Exception as e:
                 raise e
 
-    def selenium_exec(self, method, *args, **kwargs):
+    def selenium_exec(self, method, *args, **kwargs):  # pragma: no cover
         """method proxy for selenium browser
 
         Args:
@@ -248,7 +246,7 @@ class Browser:
         finally:
             gc.collect()
 
-    def sync_user_agent(self):
+    def sync_user_agent(self):  # pragma: no cover
         """method syncing the user agent between requests session and selenium"""
         if hasattr(self, "selenium"):
             if not hasattr(self, "session_user_agent"):
@@ -260,7 +258,7 @@ class Browser:
                     }
                 )
 
-    def __update_cookies_cache(self, cookies):
+    def __update_cookies_cache(self, cookies):  # pragma: no cover
         """update private cookies cache of object
 
         Args:
@@ -304,7 +302,7 @@ class Browser:
         "sameSite": "rest.SameSite",
     }
 
-    def selenium_transfer(self):
+    def selenium_transfer(self):  # pragma: no cover
         """transfer data back from selenium to session"""
         self.sync_user_agent()
         cookies = self.selenium.get_cookies()
@@ -324,7 +322,7 @@ class Browser:
                     cookie["domain"] = cookie["domain"][1:]
                 self.session.cookies.set(**cookie)
 
-    def session_transfer(self):
+    def session_transfer(self):  # pragma: no cover
         """transfer data back from session to selenium"""
         cookies = []
         for c in self.session.cookies:

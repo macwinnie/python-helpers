@@ -9,3 +9,4 @@ __pycache__
 *.log
 .github.push.version
 .pytest_cache
+*.pickle
