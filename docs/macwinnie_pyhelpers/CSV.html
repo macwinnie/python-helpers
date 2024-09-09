@@ -96,6 +96,9 @@
                         <li>
                                 <a class="function" href="#CSV.writeFile">writeFile</a>
                         </li>
+                        <li>
+                                <a class="function" href="#CSV.renameColumn">renameColumn</a>
+                        </li>
                 </ul>
 
             </li>
@@ -525,6 +528,28 @@
 </span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>
 </span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
 </span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a>            <span class="n">csv_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">csv</span><span class="p">)</span>
+</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>
+</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>    <span class="k">def</span> <span class="nf">renameColumn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">srcCol</span><span class="p">,</span> <span class="n">dstCol</span><span class="p">):</span>
+</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;change column name</span>
+</span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>
+</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a><span class="sd">        Args:</span>
+</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a><span class="sd">            srcCol (str): current name of column to rename</span>
+</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a><span class="sd">            dstCol (str): wanted name of column</span>
+</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">refreshFromRows</span><span class="p">()</span>
+</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a>        <span class="k">if</span> <span class="n">srcCol</span> <span class="o">==</span> <span class="n">dstCol</span><span class="p">:</span>
+</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a>            <span class="k">pass</span>
+</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a>        <span class="k">elif</span> <span class="n">dstCol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>                <span class="s2">&quot;Key </span><span class="si">{dst}</span><span class="s2"> already exists, not renaming column </span><span class="si">{src}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a>                    <span class="n">dst</span><span class="o">=</span><span class="n">dstCol</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="n">srcCol</span>
+</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a>                <span class="p">)</span>
+</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a>            <span class="p">)</span>
+</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a>            <span class="n">key_key</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">k</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">srcCol</span> <span class="k">else</span> <span class="n">dstCol</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>            <span class="n">newData</span> <span class="o">=</span> <span class="p">{</span><span class="n">key_key</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">newData</span>
+</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">getRows</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1010,6 +1035,28 @@ representation.</p>
 </span><span id="CSV-404"><a href="#CSV-404"><span class="linenos">404</span></a>
 </span><span id="CSV-405"><a href="#CSV-405"><span class="linenos">405</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
 </span><span id="CSV-406"><a href="#CSV-406"><span class="linenos">406</span></a>            <span class="n">csv_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">csv</span><span class="p">)</span>
+</span><span id="CSV-407"><a href="#CSV-407"><span class="linenos">407</span></a>
+</span><span id="CSV-408"><a href="#CSV-408"><span class="linenos">408</span></a>    <span class="k">def</span> <span class="nf">renameColumn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">srcCol</span><span class="p">,</span> <span class="n">dstCol</span><span class="p">):</span>
+</span><span id="CSV-409"><a href="#CSV-409"><span class="linenos">409</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;change column name</span>
+</span><span id="CSV-410"><a href="#CSV-410"><span class="linenos">410</span></a>
+</span><span id="CSV-411"><a href="#CSV-411"><span class="linenos">411</span></a><span class="sd">        Args:</span>
+</span><span id="CSV-412"><a href="#CSV-412"><span class="linenos">412</span></a><span class="sd">            srcCol (str): current name of column to rename</span>
+</span><span id="CSV-413"><a href="#CSV-413"><span class="linenos">413</span></a><span class="sd">            dstCol (str): wanted name of column</span>
+</span><span id="CSV-414"><a href="#CSV-414"><span class="linenos">414</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="CSV-415"><a href="#CSV-415"><span class="linenos">415</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">refreshFromRows</span><span class="p">()</span>
+</span><span id="CSV-416"><a href="#CSV-416"><span class="linenos">416</span></a>        <span class="k">if</span> <span class="n">srcCol</span> <span class="o">==</span> <span class="n">dstCol</span><span class="p">:</span>
+</span><span id="CSV-417"><a href="#CSV-417"><span class="linenos">417</span></a>            <span class="k">pass</span>
+</span><span id="CSV-418"><a href="#CSV-418"><span class="linenos">418</span></a>        <span class="k">elif</span> <span class="n">dstCol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+</span><span id="CSV-419"><a href="#CSV-419"><span class="linenos">419</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+</span><span id="CSV-420"><a href="#CSV-420"><span class="linenos">420</span></a>                <span class="s2">&quot;Key </span><span class="si">{dst}</span><span class="s2"> already exists, not renaming column </span><span class="si">{src}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+</span><span id="CSV-421"><a href="#CSV-421"><span class="linenos">421</span></a>                    <span class="n">dst</span><span class="o">=</span><span class="n">dstCol</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="n">srcCol</span>
+</span><span id="CSV-422"><a href="#CSV-422"><span class="linenos">422</span></a>                <span class="p">)</span>
+</span><span id="CSV-423"><a href="#CSV-423"><span class="linenos">423</span></a>            <span class="p">)</span>
+</span><span id="CSV-424"><a href="#CSV-424"><span class="linenos">424</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="CSV-425"><a href="#CSV-425"><span class="linenos">425</span></a>            <span class="n">key_key</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">k</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">srcCol</span> <span class="k">else</span> <span class="n">dstCol</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+</span><span id="CSV-426"><a href="#CSV-426"><span class="linenos">426</span></a>            <span class="n">newData</span> <span class="o">=</span> <span class="p">{</span><span class="n">key_key</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</span><span id="CSV-427"><a href="#CSV-427"><span class="linenos">427</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">newData</span>
+</span><span id="CSV-428"><a href="#CSV-428"><span class="linenos">428</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">getRows</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1739,6 +1786,53 @@ e.g. if the CSV was created by an export</p>
 <li><strong>linebreak (str):</strong>  linebreak to be used in CSV representation – changes specs! (default: <code>None</code>)</li>
 <li><strong>backupExisting (bool):</strong>  if <code>True</code> and file at filepath already exists, it will be renamed
 (timestamp appended) and the new file will be written out in place (default: <code>False</code>)</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="CSV.renameColumn" class="classattr">
+                                        <input id="CSV.renameColumn-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">renameColumn</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">srcCol</span>, </span><span class="param"><span class="n">dstCol</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="CSV.renameColumn-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#CSV.renameColumn"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSV.renameColumn-408"><a href="#CSV.renameColumn-408"><span class="linenos">408</span></a>    <span class="k">def</span> <span class="nf">renameColumn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">srcCol</span><span class="p">,</span> <span class="n">dstCol</span><span class="p">):</span>
+</span><span id="CSV.renameColumn-409"><a href="#CSV.renameColumn-409"><span class="linenos">409</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;change column name</span>
+</span><span id="CSV.renameColumn-410"><a href="#CSV.renameColumn-410"><span class="linenos">410</span></a>
+</span><span id="CSV.renameColumn-411"><a href="#CSV.renameColumn-411"><span class="linenos">411</span></a><span class="sd">        Args:</span>
+</span><span id="CSV.renameColumn-412"><a href="#CSV.renameColumn-412"><span class="linenos">412</span></a><span class="sd">            srcCol (str): current name of column to rename</span>
+</span><span id="CSV.renameColumn-413"><a href="#CSV.renameColumn-413"><span class="linenos">413</span></a><span class="sd">            dstCol (str): wanted name of column</span>
+</span><span id="CSV.renameColumn-414"><a href="#CSV.renameColumn-414"><span class="linenos">414</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="CSV.renameColumn-415"><a href="#CSV.renameColumn-415"><span class="linenos">415</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">refreshFromRows</span><span class="p">()</span>
+</span><span id="CSV.renameColumn-416"><a href="#CSV.renameColumn-416"><span class="linenos">416</span></a>        <span class="k">if</span> <span class="n">srcCol</span> <span class="o">==</span> <span class="n">dstCol</span><span class="p">:</span>
+</span><span id="CSV.renameColumn-417"><a href="#CSV.renameColumn-417"><span class="linenos">417</span></a>            <span class="k">pass</span>
+</span><span id="CSV.renameColumn-418"><a href="#CSV.renameColumn-418"><span class="linenos">418</span></a>        <span class="k">elif</span> <span class="n">dstCol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+</span><span id="CSV.renameColumn-419"><a href="#CSV.renameColumn-419"><span class="linenos">419</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+</span><span id="CSV.renameColumn-420"><a href="#CSV.renameColumn-420"><span class="linenos">420</span></a>                <span class="s2">&quot;Key </span><span class="si">{dst}</span><span class="s2"> already exists, not renaming column </span><span class="si">{src}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+</span><span id="CSV.renameColumn-421"><a href="#CSV.renameColumn-421"><span class="linenos">421</span></a>                    <span class="n">dst</span><span class="o">=</span><span class="n">dstCol</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="n">srcCol</span>
+</span><span id="CSV.renameColumn-422"><a href="#CSV.renameColumn-422"><span class="linenos">422</span></a>                <span class="p">)</span>
+</span><span id="CSV.renameColumn-423"><a href="#CSV.renameColumn-423"><span class="linenos">423</span></a>            <span class="p">)</span>
+</span><span id="CSV.renameColumn-424"><a href="#CSV.renameColumn-424"><span class="linenos">424</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="CSV.renameColumn-425"><a href="#CSV.renameColumn-425"><span class="linenos">425</span></a>            <span class="n">key_key</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">k</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">srcCol</span> <span class="k">else</span> <span class="n">dstCol</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+</span><span id="CSV.renameColumn-426"><a href="#CSV.renameColumn-426"><span class="linenos">426</span></a>            <span class="n">newData</span> <span class="o">=</span> <span class="p">{</span><span class="n">key_key</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</span><span id="CSV.renameColumn-427"><a href="#CSV.renameColumn-427"><span class="linenos">427</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">newData</span>
+</span><span id="CSV.renameColumn-428"><a href="#CSV.renameColumn-428"><span class="linenos">428</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">getRows</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>change column name</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>srcCol (str):</strong>  current name of column to rename</li>
+<li><strong>dstCol (str):</strong>  wanted name of column</li>
 </ul>
 </div>
 
