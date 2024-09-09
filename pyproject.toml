@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "macwinnie-pyhelpers"
-version = "3.0.2"
+version = "3.0.3"
 description = "Set of python helpers for daily jobs"
 authors = ["macwinnie <dev@macwinnie.me>"]
 license = "GNU AFFERO GENERAL PUBLIC LICENSE"
