@@ -414,6 +414,12 @@ class CSV:
         self.refreshFromRows()
         if srcCol == dstCol:
             pass
+        elif srcCol not in self.data.keys():
+            raise Exception(
+                "Key {src} not in column names ... not renaming anything. Those are available: {keyList}".format(
+                    src=srcCol, keyList=", ".join(self.data.keys())
+                )
+            )
         elif dstCol in self.data.keys():
             raise Exception(
                 "Key {dst} already exists, not renaming column {src}.".format(

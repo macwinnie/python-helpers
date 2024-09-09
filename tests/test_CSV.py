@@ -673,6 +673,18 @@ def test_fail_renaming_column_to_existing_key():
     assert list(csv1.data.keys())[changeID] == colName
 
 
+def test_fail_renaming_column_with_nonexisting_key():
+    rows1 = 5
+    cols1 = 5
+    (csv1rows,) = prepareExampleCSV(cols=cols1, rows=rows1, vals=["csvRows"])
+    csv1 = CSV(csv1rows)
+    changeID = 2
+    colName = list(csv1.data.keys())[changeID]
+    reverted = colName[::-1]
+    with pytest.raises(Exception):
+        csv1.renameColumn(reverted, "nonexisting")
+
+
 def test_no_change_renaming_same_name():
     rows1 = 5
     cols1 = 5
