@@ -694,3 +694,28 @@ def test_no_change_renaming_same_name():
     colName = list(csv1.data.keys())[changeID]
     csv1.renameColumn(colName, colName)
     assert list(csv1.data.keys())[changeID] == colName
+
+
+def test_drop_column():
+    rows1 = 5
+    cols1 = 5
+    (csv1rows,) = prepareExampleCSV(cols=cols1, rows=rows1, vals=["csvRows"])
+    csv1 = CSV(csv1rows)
+    dropID = 2
+    dropName = list(csv1.data.keys())[dropID]
+    originalLenght = len(list(csv1.data.keys()))
+    csv1.dropColumn(dropName)
+    assert dropName not in csv1.data.keys()
+    assert len(list(csv1.data.keys())) == originalLenght - 1
+
+
+def test_fail_drop_nonexistent_column():
+    rows1 = 5
+    cols1 = 5
+    (csv1rows,) = prepareExampleCSV(cols=cols1, rows=rows1, vals=["csvRows"])
+    csv1 = CSV(csv1rows)
+    dropName = "nonexistent"
+    originalLenght = len(list(csv1.data.keys()))
+    with pytest.raises(Exception):
+        csv1.dropColumn(dropName)
+    assert len(list(csv1.data.keys())) == originalLenght

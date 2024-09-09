@@ -431,3 +431,21 @@ class CSV:
             newData = {key_key[k]: v for k, v in self.data.items()}
             self.data = newData
             self.getRows(force=True)
+
+    def dropColumn(self, colname):
+        """change column name
+
+        Args:
+            srcCol (str): current name of column to rename
+            dstCol (str): wanted name of column
+        """
+        self.refreshFromRows()
+        if colname not in self.data.keys():
+            raise Exception(
+                "Key {src} not in column names ... not removing anything. Those are available: {keyList}".format(
+                    src=colname, keyList=", ".join(self.data.keys())
+                )
+            )
+        else:
+            self.data.pop(colname)
+            self.getRows(force=True)
