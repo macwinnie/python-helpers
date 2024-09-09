@@ -412,10 +412,16 @@ class CSV:
             dstCol (str): wanted name of column
         """
         self.refreshFromRows()
-        if dstCol in self.data.keys():
-            raise Exception("Key {dst} already exists, not renaming column {src}.".format(dst=dstCol, src=srcCol))
+        if srcCol == dstCol:
+            pass
+        elif dstCol in self.data.keys():
+            raise Exception(
+                "Key {dst} already exists, not renaming column {src}.".format(
+                    dst=dstCol, src=srcCol
+                )
+            )
         else:
-            key_key = { k: k if k != srcCol else dstCol for k in self.data.keys() }
-            newData = { key_key[k]: v for k, v in self.data.items() }
+            key_key = {k: k if k != srcCol else dstCol for k in self.data.keys()}
+            newData = {key_key[k]: v for k, v in self.data.items()}
             self.data = newData
             self.getRows(force=True)
