@@ -403,3 +403,19 @@ class CSV:
 
         with open(filepath, "w") as csv_file:
             csv_file.write(csv)
+
+    def renameColumn(self, srcCol, dstCol):
+        """change column name
+
+        Args:
+            srcCol (str): current name of column to rename
+            dstCol (str): wanted name of column
+        """
+        self.refreshFromRows()
+        if dstCol in self.data.keys():
+            raise Exception("Key {dst} already exists, not renaming column {src}.".format(dst=dstCol, src=srcCol))
+        else:
+            key_key = { k: k if k != srcCol else dstCol for k in self.data.keys() }
+            newData = { key_key[k]: v for k, v in self.data.items() }
+            self.data = newData
+            self.getRows(force=True)
