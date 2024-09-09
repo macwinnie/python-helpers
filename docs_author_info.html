@@ -1,27 +1,39 @@
 <section id="author_info">
-    <h1>PyHelpers by <a target="_blank" href="https://chaos.social/@macwinnie">@macwinnie</a></h1>
-    <p>
-        This is the documentation overview for PyHelpers project by <a target="_blank" href="https://chaos.social/@macwinnie">@macwinnie</a>.
-    </p>
-    <p>
-        To install this package, please run:<br/><br/>
-        <pre>pip install macwinnie-pyhelpers</pre>
-    </p>
-    <p>
-        Package has now two extras – and <code>CSV</code> and <code>Browser</code> modules that won't work without installing the corresponding optional packages.<br/><br/>
-        For usage of <code>CSV</code> module, you'd need to install the extra by <code>pip install macwinnie-pyhelpers[csv]</code>.<br/>
-        For usage of <code>Browser</code> module, you'd need to install teh extra by <code>pip install macwinnie-pyhelpers[browser]</code>.
-    </p>
-    <h2>Examples of usage:</h2>
-    <h3>Working with <code>python</code> history in Python shell:</h3>
-    <pre>from macwinnie_pyhelpers.PyHistory import saveHistory
+    <section>
+        <h1>PyHelpers by <a target="_blank" href="https://chaos.social/@macwinnie">@macwinnie</a></h1>
+        <p>
+            This is the documentation overview for PyHelpers project by <a target="_blank" href="https://chaos.social/@macwinnie">@macwinnie</a>.
+        </p>
+    </section>
+    <hr/>
+    <hr/>
+    <section>
+        <p>
+            To install this package, please run:<br/><br/>
+            <pre>pip install macwinnie-pyhelpers</pre>
+        </p>
+        <p>
+            Package has now two extras – and <code>CSV</code> and <code>Browser</code> modules that won't work without installing the corresponding optional packages.<br/><br/>
+            For usage of <code>CSV</code> module, you'd need to install the extra by <code>pip install macwinnie-pyhelpers[csv]</code>.<br/>
+            For usage of <code>Browser</code> module, you'd need to install the extra by <code>pip install macwinnie-pyhelpers[browser]</code>.<br/>
+        </p>
+    </section>
+    <hr/>
+    <hr/>
+    <section>
+        <h2>Examples of usage:</h2>
+        <chapter>
+            <h3>Working with <code>python</code> history in Python shell:</h3>
+            <pre>from macwinnie_pyhelpers.PyHistory import saveHistory
 saveHistory("path/to/historyfile.txt")
 
 from macwinnie_pyhelpers.PyHistory import printHistory
 printHistory()</pre>
-
-    <h3>Handling CSV data (install with extra <code>csv</code>!)</h3>
-    <pre>from macwinnie_pyhelpers.CSV import CSV
+        </chapter>
+        <hr/>
+        <chapter>
+            <h3>Handling CSV data (install with extra <code>csv</code>!)</h3>
+            <pre>from macwinnie_pyhelpers.CSV import CSV
 csv = CSV()
 csv.loadData([
     {
@@ -38,14 +50,18 @@ csv.loadData([
     }
 ], kvDict=True)
 print(bool(len(csv) == 2)) # == True</pre>
-
-    <h3>Doing version checks with sentential logic</h3>
-    <pre>import macwinnie_pyhelpers.SententialLogic as SL
+        </chapter>
+        <hr/>
+        <chapter>
+            <h3>Doing version checks with sentential logic</h3>
+            <pre>import macwinnie_pyhelpers.SententialLogic as SL
 from macwinnie_pyhelpers.Version import Version
 SL.Sentence("1.2.9 &gt;= 1.2.4 &lt;= 1.2.5", interpretingExample=Version("1.2.3")) # == True</pre>
-
-    <h3>Working with Prometheus like metrics</h3>
-    <pre>from macwinnie_pyhelpers import Metrics
+        </chapter>
+        <hr/>
+        <chapter>
+            <h3>Working with Prometheus like metrics</h3>
+            <pre>from macwinnie_pyhelpers import Metrics
 
 mc = Metrics.MetricsCollection()
 mc.setHelp('name_of_metric', 'information about metric interpretation')
@@ -53,12 +69,17 @@ mc.setType('name_of_metric', 'gauge')
 for information in list_of_data:
     labels = {} # to be filled from information
     mc.addMetric('name_of_metric', value=information.value, labels=labels)</pre>
-
-    <h2>Further details</h2>
-    <p>
-        The Sourcecode of the package can be found on <a target="_blank" href="https://github.com/macwinnie/python-helpers">GitHub</a>, the documentation you currently are reading can be found at <a href="https://macwinnie.github.io/python-helpers/">GitHub Pages</a> and was last updated on <span id="update_date" />.
-    </p>
-    <p>
-        It's also recommended to have a view at the tests written for all the helpers (100% code coverage and not only for coverage but also functions) in the <a target="_blank" href="https://github.com/macwinnie/python-helpers/tree/master/tests">Repository at GitHub</a>.
-    </p>
+        </chapter>
+    </section>
+    <hr/>
+    <hr/>
+    <section>
+        <h2>Further details</h2>
+        <p>
+            The Sourcecode of the package can be found on <a target="_blank" href="https://github.com/macwinnie/python-helpers">GitHub</a>, the documentation you currently are reading can be found at <a href="https://macwinnie.github.io/python-helpers/">GitHub Pages</a> and was last updated on <span id="update_date" />.
+        </p>
+        <p>
+            It's also recommended to have a view at the tests written for all the helpers (100% code coverage and not only for coverage but also functions) in the <a target="_blank" href="https://github.com/macwinnie/python-helpers/tree/master/tests">Repository at GitHub</a>.
+        </p>
+    </section>
 </section>
